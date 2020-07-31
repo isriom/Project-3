@@ -3,7 +3,7 @@ import face_recognition
 import numpy as np
 import cv2
 import os
-
+from PIL import ImageTk,Image
 
 class Menu:
     window = Tk()
@@ -19,8 +19,12 @@ class Menu:
     def menu(self):
         main_menu_image = PhotoImage(file="Plantillas menu\dibujo.png")
         logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
+        user_image = Image.open("user_database/"+self.user)
+        user_image = user_image.resize((436, 435), Image.ANTIALIAS)
+        user_photo = ImageTk.PhotoImage(user_image)
         self.menu_canva.create_image(350, 300, image=main_menu_image)
         self.menu_canva.create_image(238, 73, image=logo_3C)
+        self.menu_canva.create_image(237, 382, image=user_photo)
         # make_bill
         make_bill_button = Button(self.menu_canva, text="Make Bill", bg="#FBC281", height=4, width=21,
                                   command=lambda: (self.make_bill())).place(x=535, y=29)
@@ -87,7 +91,7 @@ def load_users():
         print(user)
         image = face_recognition.load_image_file(r"user_database/"+user)
         face_encoding = face_recognition.face_encodings(
-            image, num_jitters=3)[0]
+            image, num_jitters=1)[0]
         print(face_encoding)
         faces.append(face_encoding)
         users.append(user)
@@ -133,14 +137,15 @@ def login():
     # ---------------------------------------------------------------------------------
 
     results = False
-    if True in face_recognition.compare_faces(faces, user_face_encoding, 0.6):
-        print(face_recognition.compare_faces(faces, user_face_encoding, 0.6))
+    if True in face_recognition.compare_faces(faces, user_face_encoding, 0.459):
+        print(face_recognition.compare_faces(faces, user_face_encoding, 0.459))
+
         results = True
     # ---------------------------------------------------------------------------------
     # Print the results
     if results:
         print("Welcome!")
-        return True
+        return True,face_recognition.compare_faces(faces, user_face_encoding, 0.459).index(True)
     else:
         print("You are not in our database! Please create your profile or get in contact with support")
         return False
@@ -160,6 +165,7 @@ faces = []
 users = []
 load_users()
 login_image()
-if login():
-    main_window = Menu(None)
+sucefull_login,user=login()
+if sucefull_login:
+    main_window = Menu(users[user])
 os.remove("user_database/user_0.png")
