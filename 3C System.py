@@ -1,29 +1,31 @@
 from tkinter import *  # libraries imported :GUI
+from tkinter import ttk  # libraries imported :GUI
 import face_recognition
 import numpy as np
 import cv2
 import os
-from PIL import ImageTk,Image
+from PIL import ImageTk, Image
+
 
 class Menu:
     window = Tk()
     window.title("3C")
     menu_canva = Canvas(window, width=700, height=600, bg="White")
     menu_canva.pack()
-
+    logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
     # screen.create_image(238, 73, image=logo_3C)
+
     def __init__(self, user):
         self.user = user
         self.menu()
 
     def menu(self):
         main_menu_image = PhotoImage(file="Plantillas menu\dibujo.png")
-        logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
         user_image = Image.open("user_database/"+self.user)
         user_image = user_image.resize((436, 435), Image.ANTIALIAS)
         user_photo = ImageTk.PhotoImage(user_image)
         self.menu_canva.create_image(350, 300, image=main_menu_image)
-        self.menu_canva.create_image(238, 73, image=logo_3C)
+        self.menu_canva.create_image(238, 73, image=self.logo_3C)
         self.menu_canva.create_image(237, 382, image=user_photo)
         # make_bill
         make_bill_button = Button(self.menu_canva, text="Make Bill", bg="#FBC281", height=4, width=21,
@@ -54,6 +56,24 @@ class Menu:
         sub_window, sub_canva = top_level()
         sub_window.bill_image = PhotoImage(file="Plantillas menu/Bill.png")
         sub_canva.create_image(350, 300, image=sub_window.bill_image)
+        sub_canva.create_image(350, 73, image=self.logo_3C)
+        #tree
+        services_view = ttk.Treeview(sub_canva, selectmode='browse', height=6,show="tree")
+        services_view["columns"] = ("quantity", "sub total")
+        services_view.column("#0", width=255)  # services
+        services_view.column("quantity", width=160)
+        services_view.column("sub total", width=105)
+        services_view["displaycolumns"] = ("quantity", "sub total")
+        services_view.config()
+        services_scroll = ttk.Scrollbar(
+            sub_canva, orient="vertical", command=services_view.yview)
+        services_view.place(x=16, y=427)
+        services_scroll.place(x=548, y=428, height=112)
+        #combobox
+        customer_data=ttk.Combobox(sub_canva,state="normal",width=30)
+        customer_data["values"]=("hi","hola")
+        customer_data.place(x=208, y=178, height=22)
+
 
     def search_bill(self):
         sub_window, sub_canva = top_level()
@@ -137,18 +157,18 @@ def login():
     # ---------------------------------------------------------------------------------
 
     results = False
-    if True in face_recognition.compare_faces(faces, user_face_encoding, 0.459):
-        print(face_recognition.compare_faces(faces, user_face_encoding, 0.459))
+    if True in face_recognition.compare_faces(faces, user_face_encoding, 0.469):
+        print(face_recognition.compare_faces(faces, user_face_encoding, 0.469))
 
         results = True
     # ---------------------------------------------------------------------------------
     # Print the results
     if results:
         print("Welcome!")
-        return True,face_recognition.compare_faces(faces, user_face_encoding, 0.459).index(True)
+        return True, face_recognition.compare_faces(faces, user_face_encoding, 0.469).index(True)
     else:
         print("You are not in our database! Please create your profile or get in contact with support")
-        return False
+        return False, -1
     # ---------------------------------------------------------------------------------
 
 
@@ -165,7 +185,7 @@ faces = []
 users = []
 load_users()
 login_image()
-sucefull_login,user=login()
+sucefull_login, user = login()
 if sucefull_login:
     main_window = Menu(users[user])
 os.remove("user_database/user_0.png")
