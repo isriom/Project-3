@@ -113,16 +113,12 @@ def login_image():
         cv2.imshow("test", frame)
 
         k = cv2.waitKey(1)
-        if k % 256 == 27:  # ESC pressed
-
-            print("Escape hit, closing...")
-            break
-
-        elif k % 256 == 32:  # SPACE pressed
-
+        if k % 256 == 32:  # Space pressed
             user_face = "user_0.png"
             cv2.imwrite("user_database/"+user_face, frame)
             print("User_0 written!")
+            print("Closing...")
+            break
 
     cam.release()
     cv2.destroyAllWindows()
