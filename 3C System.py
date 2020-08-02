@@ -13,6 +13,7 @@ class Menu:
 	menu_canva = Canvas(window, width=700, height=600, bg="White")
 	menu_canva.pack()
 	logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
+
 	# screen.create_image(238, 73, image=logo_3C)
 
 	def __init__(self, user):
@@ -21,7 +22,7 @@ class Menu:
 
 	def menu(self):
 		main_menu_image = PhotoImage(file="Plantillas menu\dibujo.png")
-		user_image = Image.open("user_database/"+self.user)
+		user_image = Image.open("user_database/" + self.user)
 		user_image = user_image.resize((436, 435), Image.ANTIALIAS)
 		user_photo = ImageTk.PhotoImage(user_image)
 		self.menu_canva.create_image(350, 300, image=main_menu_image)
@@ -57,21 +58,61 @@ class Menu:
 		sub_window.bill_image = PhotoImage(file="Plantillas menu/Bill.png")
 		sub_canva.create_image(350, 300, image=sub_window.bill_image)
 		sub_canva.create_image(350, 73, image=self.logo_3C)
-		#tree
-		services_view = ttk.Treeview(sub_canva, selectmode='browse', height=6,show="tree")
+
+		# tree
+		services_view = ttk.Treeview(sub_canva, selectmode='browse', height=6, show="tree")
+		ttk.Style().configure("Treeview", background="SpringGreen3",
+		                      foreground="SpringGreen2")
 		services_view["columns"] = ("quantity", "sub total")
 		services_view.column("#0", width=255)  # services
 		services_view.column("quantity", width=160)
 		services_view.column("sub total", width=105)
 		services_view["displaycolumns"] = ("quantity", "sub total")
-		services_view.x=16
-		services_view.y=427
-		services_view.place(x=16, y=427)
-		scroll=create_scroll(sub_canva,services_view,"right")
-		#combobox
-		customer_data=ttk.Combobox(sub_canva,state="normal",width=30)
-		customer_data["values"]=("hi","hola")
+		services_view.place(x=18, y=427)
+		scroll = create_scroll(sub_canva, services_view, "vertical", x=549, y=428)
+
+		# combobox´s
+		customer_data = ttk.Combobox(sub_canva, state="normal", width=30)
+		customer_data["values"] = ("EM2", "EM1")
 		customer_data.place(x=208, y=178, height=22)
+
+		customer_name = ttk.Combobox(sub_canva, state="normal", width=30)
+		customer_name["values"] = ("Almendro", "Pablo")
+		customer_name.place(x=208, y=208, height=22)
+
+		service = ttk.Combobox(sub_canva, state="normal", width=33)
+		service["values"] = ("Almendro", "Pablo")
+		service.place(x=20, y=338, height=32)
+
+		# labels
+		customer_email = Label(sub_canva, width=28, bg="MistyRose2", )
+		customer_email.place(x=208, y=238, height=22)
+
+		bill_number = Label(sub_canva, width=12, bg="MistyRose2")
+		bill_number.place(x=538, y=178, height=22)
+
+		date = Label(sub_canva, width=12, bg="MistyRose2")
+		date.place(x=538, y=208, height=22)
+
+		due_date = Label(sub_canva, width=12, bg="MistyRose2")
+		due_date.place(x=538, y=238, height=22)
+
+		price = Label(sub_canva, width=13, bg="chartreuse3", textvariable="asd")
+		price.place(x=398, y=338, height=32)
+
+		sub_total = Label(sub_canva, width=12, bg="chartreuse3", text="price*quantity")
+		sub_total.place(x=508, y=338, height=32)
+		print("asdda")
+
+		# entry
+		quantity = IntVar()
+
+		quantity_entry = Entry(sub_canva, textvariable=quantity, width=23)
+		quantity_entry.place(x=249, y=339, height=32)
+		# quantity_entry.bind("<Return>", self.update_price_bill()) reserved event to input quantity
+
+	def update_price_bill(self,quantity,service):
+		pass
 
 
 	def search_bill(self):
@@ -104,19 +145,21 @@ class Menu:
 		make_bill_text = Label(
 			sub_canva, text="generate_pdf", bg="White", anchor=S).pack()
 
-def create_scroll(canvas,object,orrentation):
-	if orrentation=="rigth":
-		orrentation="vertical"
+
+def create_scroll(canvas, object, orientation, x=0, y=0):
+	if orientation == "vertical":
+		orientation = "vertical"
 	else:
-		orrentation="horizontal"
-	scroll = ttk.Scrollbar(canvas, orient=orrentation, command=object.yview)
-	scroll.place(x=object.x+object.width, y=object.y, height=object.height)
+		orientation = "horizontal"
+	scroll = ttk.Scrollbar(canvas, orient=orientation, command=object.yview)
+	scroll.place(x=x, y=y, height=object["height"] * 18.55)
 	return scroll
+
 
 def load_users():
 	for user in os.listdir("user_database"):
 		print(user)
-		image = face_recognition.load_image_file(r"user_database/"+user)
+		image = face_recognition.load_image_file(r"user_database/" + user)
 		face_encoding = face_recognition.face_encodings(
 			image, num_jitters=1)[0]
 		print(face_encoding)
@@ -130,8 +173,6 @@ def login_image():
 
 	cv2.namedWindow("FaceCapture")
 
-	img_counter = 0
-
 	while True:
 		ret, frame = cam.read()
 		if not ret:
@@ -142,7 +183,7 @@ def login_image():
 		k = cv2.waitKey(1)
 		if k % 256 == 32:  # Space pressed
 			user_face = "user_0.png"
-			cv2.imwrite("user_database/"+user_face, frame)
+			cv2.imwrite(r"user_database/" + user_face, frame)
 			print("User_0 written!")
 			print("Closing...")
 			break
@@ -172,7 +213,6 @@ def login():
 	else:
 		print("You are not in our database! Please create your profile or get in contact with support")
 		return False, -1
-	# ---------------------------------------------------------------------------------
 
 
 def top_level():
