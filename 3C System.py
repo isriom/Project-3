@@ -165,6 +165,15 @@ class Bill:
 
 		sub_total = Label(sub_canva, width=12, bg="chartreuse3", text="price*quantity")
 		sub_total.place(x=508, y=338, height=32)
+
+		amount = Label(sub_canva, width=12, bg="HotPink3", text="sum all amounts")
+		amount.place(x=578, y=428, height=33)
+
+		tax = Label(sub_canva, width=12, bg="HotPink3", text="13%*amount")
+		tax.place(x=578, y=508, height=33)
+
+		total = Label(sub_canva, width=12, bg="HotPink3", text="total with taxes")
+		total.place(x=578, y=548, height=33)
 		print("asdda")
 
 		# entry
@@ -172,8 +181,22 @@ class Bill:
 		quantity_entry = Entry(sub_canva, textvariable=quantity, width=23)
 		quantity_entry.place(x=249, y=339, height=32)
 
-		customer_email = Entry(sub_canva, textvariable=quantity, width=23)
+		email = StringVar()
+		customer_email = Entry(sub_canva, textvariable=email, width=33)
 		customer_email.place(x=208, y=238, height=22)
+
+		# buttons
+		add_services_button = Button(sub_canva, text="X", bg="seashell3", height=1, width=5,
+		                             command=lambda: (self.update_bill_services())).place(x=618, y=298)
+
+		delete_services_button = Button(sub_canva, text="!", bg="seashell3", height=1, width=5,
+		                                command=lambda: (self.clear_bill_services())).place(x=618, y=338)
+
+	def update_bill_services(self):
+		pass
+
+	def clear_bill_services(self):
+		pass
 
 
 # quantity_entry.bind("<Return>", self.update_price_bill()) reserved event to input quantity
