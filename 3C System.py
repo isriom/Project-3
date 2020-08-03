@@ -5,6 +5,18 @@ import numpy as np
 import cv2
 import os
 from PIL import ImageTk, Image
+import datetime
+
+
+class Client:
+	def __init__(self, data, name, email):
+		self.email = email
+		self.name = name
+		self.data = data
+		self.bill = []
+
+	def update_bills(self):  # placeholder for client bill
+		pass
 
 
 class Menu:
@@ -30,7 +42,7 @@ class Menu:
 		self.menu_canva.create_image(237, 382, image=user_photo)
 		# make_bill
 		make_bill_button = Button(self.menu_canva, text="Make Bill", bg="#FBC281", height=4, width=21,
-		                          command=lambda: (self.make_bill())).place(x=535, y=29)
+		                          command=lambda: (Bill(self))).place(x=535, y=29)
 
 		# search_bill
 		search_bill_button = Button(self.menu_canva, text="Search Bill", bg="#FBC281", height=4, width=21,
@@ -53,67 +65,8 @@ class Menu:
 		                             command=lambda: (self.generate_pdf())).place(x=535, y=526)
 		self.window.mainloop()
 
-	def make_bill(self):
-		sub_window, sub_canva = top_level()
-		sub_window.bill_image = PhotoImage(file="Plantillas menu/Bill.png")
-		sub_canva.create_image(350, 300, image=sub_window.bill_image)
-		sub_canva.create_image(350, 73, image=self.logo_3C)
-
-		# tree
-		services_view = ttk.Treeview(sub_canva, selectmode='browse', height=6, show="tree")
-		ttk.Style().configure("Treeview", background="SpringGreen3",
-		                      foreground="SpringGreen2")
-		services_view["columns"] = ("quantity", "sub total")
-		services_view.column("#0", width=255)  # services
-		services_view.column("quantity", width=160)
-		services_view.column("sub total", width=105)
-		services_view["displaycolumns"] = ("quantity", "sub total")
-		services_view.place(x=18, y=427)
-		scroll = create_scroll(sub_canva, services_view, "vertical", x=549, y=428)
-
-		# combobox´s
-		customer_data = ttk.Combobox(sub_canva, state="normal", width=30)
-		customer_data["values"] = ("EM2", "EM1")
-		customer_data.place(x=208, y=178, height=22)
-
-		customer_name = ttk.Combobox(sub_canva, state="normal", width=30)
-		customer_name["values"] = ("Almendro", "Pablo")
-		customer_name.place(x=208, y=208, height=22)
-
-		service = ttk.Combobox(sub_canva, state="normal", width=33)
-		service["values"] = ("Almendro", "Pablo")
-		service.place(x=20, y=338, height=32)
-
-		# labels
-		customer_email = Label(sub_canva, width=28, bg="MistyRose2", )
-		customer_email.place(x=208, y=238, height=22)
-
-		bill_number = Label(sub_canva, width=12, bg="MistyRose2")
-		bill_number.place(x=538, y=178, height=22)
-
-		date = Label(sub_canva, width=12, bg="MistyRose2")
-		date.place(x=538, y=208, height=22)
-
-		due_date = Label(sub_canva, width=12, bg="MistyRose2")
-		due_date.place(x=538, y=238, height=22)
-
-		price = Label(sub_canva, width=13, bg="chartreuse3", textvariable="asd")
-		price.place(x=398, y=338, height=32)
-
-		sub_total = Label(sub_canva, width=12, bg="chartreuse3", text="price*quantity")
-		sub_total.place(x=508, y=338, height=32)
-		print("asdda")
-
-		# entry
-		quantity = IntVar()
-
-		quantity_entry = Entry(sub_canva, textvariable=quantity, width=23)
-		quantity_entry.place(x=249, y=339, height=32)
-		# quantity_entry.bind("<Return>", self.update_price_bill()) reserved event to input quantity
-
-	def update_price_bill(self,quantity,service):
+	def update_price_bill(self, quantity, service):
 		pass
-
 
 	def search_bill(self):
 		sub_window, sub_canva = top_level()
@@ -144,6 +97,86 @@ class Menu:
 		sub_window, sub_canva = top_level()
 		make_bill_text = Label(
 			sub_canva, text="generate_pdf", bg="White", anchor=S).pack()
+
+
+class Bill:
+
+	def __init__(self, main, arg=0):
+		self.main = main
+		self.client_id = StringVar()
+		self.client_name = StringVar()
+		self.client_email = StringVar()
+		self.bil_number = IntVar()
+		self.date = "%/%/%"
+		self.due_date = ""
+		self.services_data = []
+		if arg == 0:
+			self.make_bill()
+		elif arg == 1:
+			pass
+
+	def make_bill(self):
+		sub_window, sub_canva = top_level()
+		sub_window.bill_image = PhotoImage(file="Plantillas menu/Bill.png")
+		sub_canva.create_image(350, 300, image=sub_window.bill_image)
+		sub_canva.create_image(350, 73, image=self.main.logo_3C)
+		self.date = datetime.date.today()
+		bill_time = datetime.timedelta(days=2)
+		self.due_date = self.date + bill_time
+
+		# tree
+		services_view = ttk.Treeview(sub_canva, selectmode='browse', height=6, show="tree")
+		ttk.Style().configure("Treeview", background="SpringGreen3",
+		                      foreground="SpringGreen2")
+		services_view["columns"] = ("quantity", "sub total")
+		services_view.column("#0", width=255)  # services
+		services_view.column("quantity", width=160)
+		services_view.column("sub total", width=105)
+		services_view["displaycolumns"] = ("quantity", "sub total")
+		services_view.place(x=18, y=427)
+		scroll = create_scroll(sub_canva, services_view, "vertical", x=549, y=428)
+
+		# combobox´s
+		customer_data = ttk.Combobox(sub_canva, state="normal", width=30)
+		customer_data["values"] = ("EM2", "EM1")
+		customer_data.place(x=208, y=178, height=22)
+
+		customer_name = ttk.Combobox(sub_canva, state="normal", width=30)
+		customer_name["values"] = ("Almendro", "Pablo")
+		customer_name.place(x=208, y=208, height=22)
+
+		service = ttk.Combobox(sub_canva, state="normal", width=33)
+		service["values"] = ("Almendro", "Pablo")
+		service.place(x=20, y=338, height=32)
+
+		# labels
+
+		bill_number = Label(sub_canva, width=12, bg="MistyRose2")
+		bill_number.place(x=538, y=178, height=22)
+
+		date = Label(sub_canva, width=12, bg="MistyRose2", text=self.date)
+		date.place(x=538, y=208, height=22)
+
+		due_date = Label(sub_canva, width=12, bg="MistyRose2", text=self.due_date)
+		due_date.place(x=538, y=238, height=22)
+
+		price = Label(sub_canva, width=13, bg="chartreuse3", textvariable="asd")
+		price.place(x=398, y=338, height=32)
+
+		sub_total = Label(sub_canva, width=12, bg="chartreuse3", text="price*quantity")
+		sub_total.place(x=508, y=338, height=32)
+		print("asdda")
+
+		# entry
+		quantity = IntVar()
+		quantity_entry = Entry(sub_canva, textvariable=quantity, width=23)
+		quantity_entry.place(x=249, y=339, height=32)
+
+		customer_email = Entry(sub_canva, textvariable=quantity, width=23)
+		customer_email.place(x=208, y=238, height=22)
+
+
+# quantity_entry.bind("<Return>", self.update_price_bill()) reserved event to input quantity
 
 
 def create_scroll(canvas, object, orientation, x=0, y=0):
@@ -226,6 +259,7 @@ def top_level():
 
 faces = []
 users = []
+clients_list = []
 load_users()
 login_image()
 sucefull_login, user = login()
