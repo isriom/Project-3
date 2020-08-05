@@ -1,5 +1,7 @@
 from tkinter import *  # libraries imported :GUI
 from tkinter import ttk  # libraries imported :GUI
+from typing import Iterable
+
 import face_recognition
 import numpy as np
 import cv2
@@ -14,9 +16,17 @@ class Client:
 		self.name = name
 		self.data = data
 		self.bill = []
+		clients_list.append(self)
 
-	def update_bills(self):  # placeholder for client bill
+	def update_bills(self):  # placeholder for clients bill
 		pass
+
+	def add_client(self):
+		file = open(r"clients/" + self.data + ".txt", "x")
+		print("newclient")
+		client = "" + self.name + "\n" + self.data + "\n" + self.email + ""
+		print(client)
+		file.write(client)
 
 
 class Menu:
@@ -102,6 +112,7 @@ class Menu:
 class Bill:
 
 	def __init__(self, main, arg=0):
+		load_clients()
 		self.main = main
 		self.client_id = StringVar()
 		self.client_name = StringVar()
@@ -137,15 +148,16 @@ class Bill:
 		scroll = create_scroll(sub_canva, services_view, "vertical", x=549, y=428)
 
 		# combobox´s
-		customer_data = ttk.Combobox(sub_canva, state="normal", width=30)
-		customer_data["values"] = ("EM2", "EM1")
+		customer_data = ttk.Combobox(sub_canva, state="normal", width=30, textvariable=self.client_id)
+		customer_data["values"] = clients_list
 		customer_data.place(x=208, y=178, height=22)
 
-		customer_name = ttk.Combobox(sub_canva, state="normal", width=30)
+		customer_name = ttk.Combobox(sub_canva, state="normal", width=30, textvariable=self.client_name)
 		customer_name["values"] = ("Almendro", "Pablo")
 		customer_name.place(x=208, y=208, height=22)
 
-		service = ttk.Combobox(sub_canva, state="normal", width=33)
+		service_string = StringVar()
+		service = ttk.Combobox(sub_canva, state="normal", width=33, textvariable=service_string)
 		service["values"] = ("Almendro", "Pablo")
 		service.place(x=20, y=338, height=32)
 
@@ -181,8 +193,7 @@ class Bill:
 		quantity_entry = Entry(sub_canva, textvariable=quantity, width=23)
 		quantity_entry.place(x=249, y=339, height=32)
 
-		email = StringVar()
-		customer_email = Entry(sub_canva, textvariable=email, width=33)
+		customer_email = Entry(sub_canva, textvariable=self.client_email, width=33)
 		customer_email.place(x=208, y=238, height=22)
 
 		# buttons
@@ -190,13 +201,44 @@ class Bill:
 		                             command=lambda: (self.update_bill_services())).place(x=618, y=298)
 
 		delete_services_button = Button(sub_canva, text="!", bg="seashell3", height=1, width=5,
-		                                command=lambda: (self.clear_bill_services())).place(x=618, y=338)
+		                                command=lambda: (self.tree_insert(services_view, service_string,
+		                                                                  quantity) and self.clear_bill_services())).place(
+			x=618, y=338)
+
+		add_bill = Button(sub_canva, text="Accept", bg="#FBC281", height=1, width=15,
+		                  command=lambda: (self.add_client())).place(x=33, y=563)
+
+		delete_bill = Button(sub_canva, text="Delete", bg="#FBC281", height=1, width=15,
+		                     command=lambda: (self.clear_bill_services())).place(x=188, y=563)
 
 	def update_bill_services(self):
 		pass
 
+	def update_client_list(self):
+		pass
+
 	def clear_bill_services(self):
 		pass
+
+	def add_client(self):
+		if self.client_id in clients_list:
+			file = open(r"user_database/" + str(self.bil_number.get()) + ".txt", "x")
+			bill = ""
+			for x in range(len(self.services_data) - 1):
+				bill = bill + self.services_data[x - 1]
+				if (x - 1) % 2 == 0:
+					bill = bill + "\n"
+			file.write(bill)
+		else:
+			new_client = self.client_id.get()
+			client_name = self.client_name.get()
+			client_email = self.client_email.get()
+			new_client = Client(new_client, client_name, client_email)
+			new_client.add_client()
+
+	def tree_insert(self, tree, services, quantity):
+		tree.insert('', 'end', text=services.get(), values=(quantity.get(), "subtotal"))
+		return
 
 
 # quantity_entry.bind("<Return>", self.update_price_bill()) reserved event to input quantity
@@ -210,6 +252,15 @@ def create_scroll(canvas, object, orientation, x=0, y=0):
 	scroll = ttk.Scrollbar(canvas, orient=orientation, command=object.yview)
 	scroll.place(x=x, y=y, height=object["height"] * 18.55)
 	return scroll
+
+
+def load_clients():
+	global clients_list
+	list = []
+	for client in os.listdir("clients/"):
+		indice = client.find(".txt")
+		list.append(client[:indice])
+	clients_list = list
 
 
 def load_users():
@@ -239,7 +290,7 @@ def login_image():
 		k = cv2.waitKey(1)
 		if k % 256 == 32:  # Space pressed
 			user_face = "user_0.png"
-			cv2.imwrite(r"user_database/" + user_face, frame)
+			file = cv2.imwrite(r"user_database/" + user_face, frame)
 			print("User_0 written!")
 			print("Closing...")
 			break
@@ -283,6 +334,7 @@ def top_level():
 faces = []
 users = []
 clients_list = []
+load_clients()
 load_users()
 login_image()
 sucefull_login, user = login()
