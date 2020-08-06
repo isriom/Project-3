@@ -118,6 +118,7 @@ class Bill:
 		self.client_name = StringVar()
 		self.client_email = StringVar()
 		self.bil_number = IntVar()
+		self.bil_number.set(number_bill())
 		self.date = "%/%/%"
 		self.due_date = ""
 		self.services_data = []
@@ -153,7 +154,7 @@ class Bill:
 		customer_data.place(x=208, y=178, height=22)
 
 		customer_name = ttk.Combobox(sub_canva, state="normal", width=30, textvariable=self.client_name)
-		customer_name["values"] = ("Almendro", "Pablo")
+		customer_name["values"] = clients_names
 		customer_name.place(x=208, y=208, height=22)
 
 		service_string = StringVar()
@@ -163,7 +164,7 @@ class Bill:
 
 		# labels
 
-		bill_number = Label(sub_canva, width=12, bg="MistyRose2")
+		bill_number = Label(sub_canva, width=12, bg="MistyRose2", textvariable=self.bil_number)
 		bill_number.place(x=538, y=178, height=22)
 
 		date = Label(sub_canva, width=12, bg="MistyRose2", text=self.date)
@@ -206,10 +207,14 @@ class Bill:
 			x=618, y=338)
 
 		add_bill = Button(sub_canva, text="Accept", bg="#FBC281", height=1, width=15,
-		                  command=lambda: (self.add_client())).place(x=33, y=563)
+		                  command=lambda: (self.add_client(services_view))).place(x=33, y=563)
 
 		delete_bill = Button(sub_canva, text="Delete", bg="#FBC281", height=1, width=15,
 		                     command=lambda: (self.clear_bill_services())).place(x=188, y=563)
+
+		# events
+		customer_data.bind("<<ComboboxSelected>>", lambda event: self.found_client())
+		customer_name.bind("<<ComboboxSelected>>", lambda event: self.found_client())
 
 	def update_bill_services(self):
 		pass
@@ -220,14 +225,18 @@ class Bill:
 	def clear_bill_services(self):
 		pass
 
-	def add_client(self):
-		if self.client_id in clients_list:
-			file = open(r"user_database/" + str(self.bil_number.get()) + ".txt", "x")
+	def add_client(self, tree):
+		if self.client_id.get() in clients_list:
 			bill = ""
-			for x in range(len(self.services_data) - 1):
-				bill = bill + self.services_data[x - 1]
-				if (x - 1) % 2 == 0:
-					bill = bill + "\n"
+			services = 0
+			for line in tree.get_children():
+				bill = bill + str(tree.item(line)["text"])
+				for value in tree.item(line)['values']:
+					bill = bill + " " + str(value)
+				bill = bill + "\n"
+			file = open(r"invoices/" + str(self.bil_number.get()) + ".txt", "x")
+
+			print(["as", bill])
 			file.write(bill)
 		else:
 			new_client = self.client_id.get()
@@ -235,10 +244,23 @@ class Bill:
 			client_email = self.client_email.get()
 			new_client = Client(new_client, client_name, client_email)
 			new_client.add_client()
+			self.add_client()
 
 	def tree_insert(self, tree, services, quantity):
 		tree.insert('', 'end', text=services.get(), values=(quantity.get(), "subtotal"))
 		return
+
+	def found_client(self, ):
+		global clients_list, clients_names
+		if self.client_id.get() in clients_list:
+			indice = clients_list.index(self.client_id.get())
+			self.client_email.set(clients_emails[indice])
+			self.client_name.set(clients_names[indice])
+		if self.client_name.get() in clients_names:
+			indice = clients_names.index(self.client_name.get())
+			self.client_email.set(clients_emails[indice])
+			self.client_id.set(clients_list[indice])
+		print([self.client_email.get(), self.client_name.get(), self.client_id.get()])
 
 
 # quantity_entry.bind("<Return>", self.update_price_bill()) reserved event to input quantity
@@ -255,12 +277,35 @@ def create_scroll(canvas, object, orientation, x=0, y=0):
 
 
 def load_clients():
-	global clients_list
+	global clients_list, clients_names, clients_emails
 	list = []
+	list2 = []
+	list3 = []
 	for client in os.listdir("clients/"):
+		# load client id
 		indice = client.find(".txt")
 		list.append(client[:indice])
+		# load client names
+		file = open("clients/" + client, "r")
+		file = file.read().splitlines()
+		list2.append(file[0])
+		# load clients emails
+		list3.append(file[2])
+	# save in memory the clients data
 	clients_list = list
+	clients_names = list2
+	clients_emails = list3
+	print([list, list2, list3])
+
+
+def number_bill():
+	number = 0
+	bills = os.listdir("invoices/")
+	for number in bills:
+		indice = number.find(".txt")
+		number = number[:indice]
+		number = int(number)
+	return number + 1
 
 
 def load_users():
@@ -334,6 +379,8 @@ def top_level():
 faces = []
 users = []
 clients_list = []
+clients_names = []
+clients_emails = []
 load_clients()
 load_users()
 login_image()
