@@ -122,6 +122,9 @@ class Bill:
 		self.date = "%/%/%"
 		self.due_date = ""
 		self.services_data = []
+		self.services = StringVar()
+		self.quantity = IntVar()
+		self.total = IntVar()
 		if arg == 0:
 			self.make_bill()
 		elif arg == 1:
@@ -157,8 +160,7 @@ class Bill:
 		customer_name["values"] = clients_names
 		customer_name.place(x=208, y=208, height=22)
 
-		service_string = StringVar()
-		service = ttk.Combobox(sub_canva, state="normal", width=33, textvariable=service_string)
+		service = ttk.Combobox(sub_canva, state="normal", width=33, textvariable=self.services)
 		service["values"] = ("Almendro", "Pablo")
 		service.place(x=20, y=338, height=32)
 
@@ -185,13 +187,12 @@ class Bill:
 		tax = Label(sub_canva, width=12, bg="HotPink3", text="13%*amount")
 		tax.place(x=578, y=508, height=33)
 
-		total = Label(sub_canva, width=12, bg="HotPink3", text="total with taxes")
+		total = Label(sub_canva, width=12, bg="HotPink3", textvariable=self.total)
 		total.place(x=578, y=548, height=33)
 		print("asdda")
 
 		# entry
-		quantity = IntVar()
-		quantity_entry = Entry(sub_canva, textvariable=quantity, width=23)
+		quantity_entry = Entry(sub_canva, textvariable=self.quantity, width=23)
 		quantity_entry.place(x=249, y=339, height=32)
 
 		customer_email = Entry(sub_canva, textvariable=self.client_email, width=33)
@@ -202,8 +203,7 @@ class Bill:
 		                             command=lambda: (self.update_bill_services())).place(x=618, y=298)
 
 		delete_services_button = Button(sub_canva, text="!", bg="seashell3", height=1, width=5,
-		                                command=lambda: (self.tree_insert(services_view, service_string,
-		                                                                  quantity) and self.clear_bill_services())).place(
+		                                command=lambda: (self.tree_insert(services_view) and self.clear_bill_services())).place(
 			x=618, y=338)
 
 		add_bill = Button(sub_canva, text="Accept", bg="#FBC281", height=1, width=15,
@@ -223,6 +223,8 @@ class Bill:
 		pass
 
 	def clear_bill_services(self):
+		self.services.set("")
+		self.quantity.set(0)
 		pass
 
 	def add_client(self, tree):
@@ -256,9 +258,10 @@ class Bill:
 			for line in bill.split("\n"):
 				pdf_bill.cell(600, 3, str(line), 0, 1)
 				pdf_bill.ln()
+			pdf_bill.cell(600, 3, "total:"+str(self.total.get()), 0, 1)
 			pdf_bill.output("invoices/" + str(self.bil_number.get()) + ".pdf", 'F')
 			file = open(r"clients/" + str(self.client_id.get()) + ".txt", "a")
-			file.write("\n"+str(self.bil_number.get()))
+			file.write("\n" + str(self.bil_number.get()))
 
 		else:
 			new_client = self.client_id.get()
@@ -268,8 +271,10 @@ class Bill:
 			new_client.add_client()
 			self.add_client(tree)
 
-	def tree_insert(self, tree, services, quantity):
-		tree.insert('', 'end', text=services.get(), values=(quantity.get(), "subtotal"))
+	def tree_insert(self, tree):
+		tree.insert('', 'end', text=self.services.get(), values=(self.quantity.get(), "subtotal"))
+		self.total.set(self.total.get()+ self.quantity.get() * 1)
+		"""need to get the price of the services"""
 		return
 
 	def found_client(self, ):
