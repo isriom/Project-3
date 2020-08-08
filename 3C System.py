@@ -1,7 +1,7 @@
 from tkinter import *  # libraries imported :GUI
 from tkinter import ttk  # libraries imported :GUI
 from typing import Iterable
-
+from fpdf import FPDF
 import face_recognition
 import numpy as np
 import cv2
@@ -227,24 +227,46 @@ class Bill:
 
 	def add_client(self, tree):
 		if self.client_id.get() in clients_list:
-			bill = ""
+			# Create a txt
+			bill = "Client" + "\n" + self.client_id.get() + ":" + self.client_name.get() + "\n" + "Dates" + "\n" + str(
+				self.date) + ":" + str(
+				self.due_date) + "\n" + "Services            Quantity        Total" + "\n"
 			services = 0
 			for line in tree.get_children():
 				bill = bill + str(tree.item(line)["text"])
 				for value in tree.item(line)['values']:
 					bill = bill + " " + str(value)
 				bill = bill + "\n"
-			file = open(r"invoices/" + str(self.bil_number.get()) + ".txt", "x")
-
+			file = open(r"bills/" + str(self.bil_number.get()) + ".txt", "x")
 			print(["as", bill])
 			file.write(bill)
+			file.close()
+
+			# Create a pdf using the txt as template
+			# put a header
+			pdf_bill = FPDF('P', 'mm', 'A4')
+			pdf_bill.add_page()
+			pdf_bill.set_font("times", "B", 30)
+			pdf_bill.image("Plantillas menu/3clogo.png", 10, 8, 70)
+			pdf_bill.cell(80)
+			pdf_bill.cell(70, 10, ("Bill:  " + str(self.bil_number.get()) + "°"), 1, 1, 'C')
+			pdf_bill.ln(10)
+			# put the data
+			pdf_bill.set_font("helvetica", size=12)
+			for line in bill.split("\n"):
+				pdf_bill.cell(600, 3, str(line), 0, 1)
+				pdf_bill.ln()
+			pdf_bill.output("invoices/" + str(self.bil_number.get()) + ".pdf", 'F')
+			file = open(r"clients/" + str(self.client_id.get()) + ".txt", "a")
+			file.write("\n"+str(self.bil_number.get()))
+
 		else:
 			new_client = self.client_id.get()
 			client_name = self.client_name.get()
 			client_email = self.client_email.get()
 			new_client = Client(new_client, client_name, client_email)
 			new_client.add_client()
-			self.add_client()
+			self.add_client(tree)
 
 	def tree_insert(self, tree, services, quantity):
 		tree.insert('', 'end', text=services.get(), values=(quantity.get(), "subtotal"))
@@ -302,7 +324,7 @@ def number_bill():
 	number = 0
 	bills = os.listdir("invoices/")
 	for number in bills:
-		indice = number.find(".txt")
+		indice = number.find(".pdf")
 		number = number[:indice]
 		number = int(number)
 	return number + 1
