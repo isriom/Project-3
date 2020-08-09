@@ -10,6 +10,21 @@ from PIL import ImageTk, Image
 import datetime
 
 
+class Services:
+
+	def __init__(self, name, price):
+		self.name = name
+		self.price = price
+		service_list.append(self)
+
+	def add_service(self):
+		file = open(r"clients/" + self.name + ".txt", "x")
+		print("newclient")
+		service = "" + self.name + "\n" + self.price
+		print(service)
+		file.write(service)
+
+
 class Client:
 	def __init__(self, data, name, email):
 		self.email = email
@@ -18,8 +33,11 @@ class Client:
 		self.bill = []
 		clients_list.append(self)
 
-	def update_bills(self):  # placeholder for clients bill
-		pass
+	def update_bills(self):
+		file = open("clients/" + str(self.data), "r")
+		for bill in file.read().splitlines()[3:]:
+			if (bill + ".pdf") in os.listdir("invoices/"):
+				self.bill.append(bill)
 
 	def add_client(self):
 		file = open(r"clients/" + self.data + ".txt", "x")
@@ -123,8 +141,14 @@ class Bill:
 		self.due_date = ""
 		self.services_data = []
 		self.services = StringVar()
+		self.services.set("Service")
 		self.quantity = IntVar()
 		self.total = IntVar()
+		self.price = IntVar()
+		self.sub_total = IntVar()
+		self.taxes = IntVar()
+		self.total_with_taxes = IntVar()
+
 		if arg == 0:
 			self.make_bill()
 		elif arg == 1:
@@ -160,8 +184,8 @@ class Bill:
 		customer_name["values"] = clients_names
 		customer_name.place(x=208, y=208, height=22)
 
-		service = ttk.Combobox(sub_canva, state="normal", width=33, textvariable=self.services)
-		service["values"] = ("Almendro", "Pablo")
+		service = ttk.Combobox(sub_canva, state="normal", width=33, text="Service", textvariable=self.services)
+		service["values"] = service_list
 		service.place(x=20, y=338, height=32)
 
 		# labels
@@ -175,19 +199,19 @@ class Bill:
 		due_date = Label(sub_canva, width=12, bg="MistyRose2", text=self.due_date)
 		due_date.place(x=538, y=238, height=22)
 
-		price = Label(sub_canva, width=13, bg="chartreuse3", textvariable="asd")
+		price = Label(sub_canva, width=13, bg="chartreuse3", textvariable=self.price)
 		price.place(x=398, y=338, height=32)
 
-		sub_total = Label(sub_canva, width=12, bg="chartreuse3", text="price*quantity")
+		sub_total = Label(sub_canva, width=12, bg="chartreuse3", textvariable=self.sub_total)
 		sub_total.place(x=508, y=338, height=32)
 
-		amount = Label(sub_canva, width=12, bg="HotPink3", text="sum all amounts")
+		amount = Label(sub_canva, width=12, bg="HotPink3", textvariable=self.total)
 		amount.place(x=578, y=428, height=33)
 
-		tax = Label(sub_canva, width=12, bg="HotPink3", text="13%*amount")
+		tax = Label(sub_canva, width=12, bg="HotPink3", textvariable=self.taxes)
 		tax.place(x=578, y=508, height=33)
 
-		total = Label(sub_canva, width=12, bg="HotPink3", textvariable=self.total)
+		total = Label(sub_canva, width=12, bg="HotPink3", textvariable=self.total_with_taxes)
 		total.place(x=578, y=548, height=33)
 		print("asdda")
 
@@ -203,7 +227,8 @@ class Bill:
 		                             command=lambda: (self.update_bill_services())).place(x=618, y=298)
 
 		delete_services_button = Button(sub_canva, text="!", bg="seashell3", height=1, width=5,
-		                                command=lambda: (self.tree_insert(services_view) and self.clear_bill_services())).place(
+		                                command=lambda: (self.tree_insert(
+			                                services_view) and self.clear_bill_services())).place(
 			x=618, y=338)
 
 		add_bill = Button(sub_canva, text="Accept", bg="#FBC281", height=1, width=15,
@@ -215,6 +240,8 @@ class Bill:
 		# events
 		customer_data.bind("<<ComboboxSelected>>", lambda event: self.found_client())
 		customer_name.bind("<<ComboboxSelected>>", lambda event: self.found_client())
+		service.bind("<<ComboboxSelected>>", lambda event: self.upd_temp_bill())
+		quantity_entry.bind("<Key>", lambda event: self.upd_temp_bill())
 
 	def update_bill_services(self):
 		pass
@@ -258,7 +285,7 @@ class Bill:
 			for line in bill.split("\n"):
 				pdf_bill.cell(600, 3, str(line), 0, 1)
 				pdf_bill.ln()
-			pdf_bill.cell(600, 3, "total:"+str(self.total.get()), 0, 1)
+			pdf_bill.cell(600, 3, "total:" + str(self.total.get()), 0, 1)
 			pdf_bill.output("invoices/" + str(self.bil_number.get()) + ".pdf", 'F')
 			file = open(r"clients/" + str(self.client_id.get()) + ".txt", "a")
 			file.write("\n" + str(self.bil_number.get()))
@@ -272,12 +299,15 @@ class Bill:
 			self.add_client(tree)
 
 	def tree_insert(self, tree):
-		tree.insert('', 'end', text=self.services.get(), values=(self.quantity.get(), "subtotal"))
-		self.total.set(self.total.get()+ self.quantity.get() * 1)
+		tree.insert('', 'end', text=self.services.get(), values=(
+			self.quantity.get(), self.quantity.get() * service_price[service_list.index(self.services.get())]))
+		self.total.set(self.total.get() + self.sub_total.get())
+		self.taxes.set(self.total.get() * 0.13)
+		self.total_with_taxes.set(self.total.get() + self.taxes.get())
 		"""need to get the price of the services"""
 		return
 
-	def found_client(self, ):
+	def found_client(self):
 		global clients_list, clients_names
 		if self.client_id.get() in clients_list:
 			indice = clients_list.index(self.client_id.get())
@@ -288,6 +318,10 @@ class Bill:
 			self.client_email.set(clients_emails[indice])
 			self.client_id.set(clients_list[indice])
 		print([self.client_email.get(), self.client_name.get(), self.client_id.get()])
+
+	def upd_temp_bill(self):
+		self.price.set(service_price[service_list.index(self.services.get())])
+		self.sub_total.set(self.price.get() * self.quantity.get())
 
 
 # quantity_entry.bind("<Return>", self.update_price_bill()) reserved event to input quantity
@@ -323,6 +357,19 @@ def load_clients():
 	clients_names = list2
 	clients_emails = list3
 	print([list, list2, list3])
+
+
+def load_services():
+	global service_list, service_price
+	list = []
+	list2 = []
+	for services in os.listdir("services/"):
+		file = open(r"services/" + services, "r")
+		file = file.read().splitlines()
+		list.append(file[0])
+		list2.append(int(file[1]))
+	service_list = list
+	service_price = list2
 
 
 def number_bill():
@@ -408,8 +455,12 @@ users = []
 clients_list = []
 clients_names = []
 clients_emails = []
+service_list = []
+service_price = []
+
 load_clients()
 load_users()
+load_services()
 login_image()
 sucefull_login, user = login()
 if sucefull_login:
