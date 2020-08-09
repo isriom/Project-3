@@ -129,10 +129,14 @@ class Menu:
 
 class Bill:
 
-	def __init__(self, main, arg=0):
+	def __init__(self, main):
 		load_clients()
+		load_services()
 		self.main = main
+		self.sub_window, self.sub_canva = top_level()
+		self.services_view = ttk.Treeview(self.sub_canva, selectmode='browse', height=6, show="tree")
 		self.client_id = StringVar()
+		self.client_id.set("EM"+str(len(os.listdir("clients/"))+1))
 		self.client_name = StringVar()
 		self.client_email = StringVar()
 		self.bil_number = IntVar()
@@ -148,14 +152,10 @@ class Bill:
 		self.sub_total = IntVar()
 		self.taxes = IntVar()
 		self.total_with_taxes = IntVar()
-
-		if arg == 0:
-			self.make_bill()
-		elif arg == 1:
-			pass
+		self.make_bill()
 
 	def make_bill(self):
-		sub_window, sub_canva = top_level()
+		sub_window, sub_canva = self.sub_window, self.sub_canva
 		sub_window.bill_image = PhotoImage(file="Plantillas menu/Bill.png")
 		sub_canva.create_image(350, 300, image=sub_window.bill_image)
 		sub_canva.create_image(350, 73, image=self.main.logo_3C)
@@ -164,7 +164,7 @@ class Bill:
 		self.due_date = self.date + bill_time
 
 		# tree
-		services_view = ttk.Treeview(sub_canva, selectmode='browse', height=6, show="tree")
+		services_view = self.services_view
 		ttk.Style().configure("Treeview", background="SpringGreen3",
 		                      foreground="SpringGreen2")
 		services_view["columns"] = ("quantity", "sub total")
@@ -223,36 +223,37 @@ class Bill:
 		customer_email.place(x=208, y=238, height=22)
 
 		# buttons
-		add_services_button = Button(sub_canva, text="X", bg="seashell3", height=1, width=5,
-		                             command=lambda: (self.update_bill_services())).place(x=618, y=298)
+		delete_services_button = Button(sub_canva, text="X", bg="seashell3", height=1, width=5,
+		                                command=lambda: (self.clear_bill_services())).place(x=618, y=298)
 
-		delete_services_button = Button(sub_canva, text="!", bg="seashell3", height=1, width=5,
-		                                command=lambda: (self.tree_insert(
-			                                services_view) and self.clear_bill_services())).place(
+		add_services_button = Button(sub_canva, text="!", bg="seashell3", height=1, width=5,
+		                             command=(lambda: self.call_add_button())).place(
 			x=618, y=338)
 
 		add_bill = Button(sub_canva, text="Accept", bg="#FBC281", height=1, width=15,
 		                  command=lambda: (self.add_client(services_view))).place(x=33, y=563)
 
 		delete_bill = Button(sub_canva, text="Delete", bg="#FBC281", height=1, width=15,
-		                     command=lambda: (self.clear_bill_services())).place(x=188, y=563)
+		                     command=lambda: self.sub_window.destroy()).place(x=188, y=563)
 
 		# events
 		customer_data.bind("<<ComboboxSelected>>", lambda event: self.found_client())
 		customer_name.bind("<<ComboboxSelected>>", lambda event: self.found_client())
 		service.bind("<<ComboboxSelected>>", lambda event: self.upd_temp_bill())
+		services_view.bind('<ButtonRelease-1>', self.select_item)
 		quantity_entry.bind("<Key>", lambda event: self.upd_temp_bill())
 
-	def update_bill_services(self):
-		pass
-
-	def update_client_list(self):
-		pass
-
 	def clear_bill_services(self):
-		self.services.set("")
-		self.quantity.set(0)
-		pass
+		try:
+			service = self.services_view.selection()[0]
+			amount = self.services_view.item(service)["values"][1]
+			self.total.set(self.total.get() - int(amount))
+			self.taxes.set(self.total.get() * 0.13)
+			self.total_with_taxes.set(self.total.get() + self.taxes.get())
+			self.services_view.delete(service)
+		finally:
+			self.services.set("")
+			self.quantity.set(0)
 
 	def add_client(self, tree):
 		if self.client_id.get() in clients_list:
@@ -323,8 +324,14 @@ class Bill:
 		self.price.set(service_price[service_list.index(self.services.get())])
 		self.sub_total.set(self.price.get() * self.quantity.get())
 
+	def select_item(self, event):
+		service = self.services_view.item(self.services_view.focus())
+		self.services.set(service["text"])
+		self.quantity.set(service["values"][0])
 
-# quantity_entry.bind("<Return>", self.update_price_bill()) reserved event to input quantity
+	def call_add_button(self):
+		self.upd_temp_bill()
+		self.tree_insert(self.services_view)
 
 
 def create_scroll(canvas, object, orientation, x=0, y=0):
