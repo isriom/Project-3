@@ -10,6 +10,7 @@ from PIL import ImageTk, Image
 import datetime
 import webbrowser
 
+
 class Services:
 
 	def __init__(self, name, price):
@@ -19,9 +20,7 @@ class Services:
 
 	def add_service(self):
 		file = open(r"clients/" + self.name + ".txt", "x")
-		print("newclient")
 		service = "" + self.name + "\n" + self.price
-		print(service)
 		file.write(service)
 
 
@@ -41,13 +40,14 @@ class Client:
 
 	def add_client(self):
 		file = open(r"clients/" + self.data + ".txt", "x")
-		print("newclient")
 		client = "" + self.name + "\n" + self.data + "\n" + self.email + ""
-		print(client)
 		file.write(client)
 
 
 class Menu:
+	"""
+	The main menu Class
+	"""
 	window = Tk()
 	window.title("3C")
 	menu_canva = Canvas(window, width=700, height=600, bg="White")
@@ -57,6 +57,10 @@ class Menu:
 	# screen.create_image(238, 73, image=logo_3C)
 
 	def __init__(self, user):
+		"""
+		Call the creation of the menu GUI and load the user
+		:param user: name of the user
+		"""
 		self.user = user
 		self.menu()
 
@@ -69,39 +73,27 @@ class Menu:
 		self.menu_canva.create_image(238, 73, image=self.logo_3C)
 		self.menu_canva.create_image(237, 382, image=user_photo)
 		# make_bill
-		make_bill_button = Button(self.menu_canva, text="Make Bill", bg="#FBC281", height=4, width=21,
-		                          command=lambda: (Bill(self))).place(x=535, y=29)
-
+		Button(self.menu_canva, text="Make Bill", bg="#FBC281", height=4, width=21,
+		       command=lambda: (Bill(self))).place(x=535, y=29)
 		# search_bill
-		search_bill_button = Button(self.menu_canva, text="Search Bill", bg="#FBC281", height=4, width=21,
-		                            command=lambda: (BillSearch(self))).place(x=535, y=115)
-
+		Button(self.menu_canva, text="Search Bill", bg="#FBC281", height=4, width=21,
+		       command=lambda: (BillSearch(self))).place(x=535, y=115)
 		# delete_bill
-		delete_bill_button = Button(self.menu_canva, text="Delete Bill", bg="#FBC281", height=4, width=21,
-		                            command=lambda: (BillSearch(self))).place(x=535, y=197)
+		Button(self.menu_canva, text="Delete Bill", bg="#FBC281", height=4, width=21,
+		       command=lambda: (BillSearch(self))).place(x=535, y=197)
 		# generate_report
-		generate_report_button = Button(self.menu_canva, text="Generate Report", bg="#FBC281", height=4, width=21,
-		                                command=lambda: (BillSearch(self))).place(x=535, y=279)
+		Button(self.menu_canva, text="Generate Report", bg="#FBC281", height=4, width=21,
+		       command=lambda: (BillSearch(self))).place(x=535, y=279)
 		# add_services
-		add_services_button = Button(self.menu_canva, text="Add Services", bg="#FBC281", height=4, width=21,
-		                             command=lambda: (self.add_services())).place(x=535, y=361)
+		Button(self.menu_canva, text="Add Services", bg="#FBC281", height=4, width=21,
+		       command=lambda: (self.add_services())).place(x=535, y=361)
 		# update_services
-		upd_services_button = Button(self.menu_canva, text="Update Services", bg="#FBC281", height=4, width=21,
-		                             command=lambda: (self.upd_services())).place(x=535, y=444)
+		Button(self.menu_canva, text="Update Services", bg="#FBC281", height=4, width=21,
+		       command=lambda: (self.upd_services())).place(x=535, y=444)
 		# generate_pdf
-		generate_pdf_button = Button(self.menu_canva, text="Generate pdf", bg="#FBC281", height=4, width=21,
-		                             command=lambda: (self.generate_pdf())).place(x=535, y=526)
+		Button(self.menu_canva, text="Generate pdf", bg="#FBC281", height=4, width=21,
+		       command=lambda: (BillSearch(self))).place(x=535, y=526)
 		self.window.mainloop()
-
-	def delete_bill(self):
-		sub_window, sub_canva = top_level()
-		make_bill_text = Label(
-			sub_canva, text="delete_bill", bg="White", anchor=S).pack()
-
-	def generate_report(self):
-		sub_window, sub_canva = top_level()
-		make_bill_text = Label(
-			sub_canva, text="generate_report", bg="White", anchor=S).pack()
 
 	def add_services(self):
 		sub_window, sub_canva = top_level()
@@ -113,15 +105,16 @@ class Menu:
 		make_bill_text = Label(
 			sub_canva, text="update_services", bg="White", anchor=S).pack()
 
-	def generate_pdf(self):
-		sub_window, sub_canva = top_level()
-		make_bill_text = Label(
-			sub_canva, text="generate_pdf", bg="White", anchor=S).pack()
-
 
 class Bill:
-
+	"""
+	Class that determine the GUI and algorithms to create a bill and add a new client
+	"""
 	def __init__(self, main):
+		"""
+		call the GUI and load all the available clients
+		:param main: root tkinter object
+		"""
 		load_clients()
 		load_services()
 		self.main = main
@@ -203,7 +196,6 @@ class Bill:
 
 		total = Label(sub_canva, width=12, bg="HotPink3", textvariable=self.total_with_taxes)
 		total.place(x=578, y=548, height=33)
-		print("asdda")
 
 		# entry
 		quantity_entry = Entry(sub_canva, textvariable=self.quantity, width=23)
@@ -258,7 +250,6 @@ class Bill:
 					bill = bill + " " + str(value)
 				bill = bill + "\n"
 			file = open(r"bills/" + str(self.bil_number.get()) + ".txt", "x")
-			print(["as", bill])
 			file.write(bill + "total" + "\n" + str(self.total_with_taxes.get()))
 			file.close()
 
@@ -308,7 +299,6 @@ class Bill:
 			indice = clients_names.index(self.client_name.get())
 			self.client_email.set(clients_emails[indice])
 			self.client_id.set(clients_list[indice])
-		print([self.client_email.get(), self.client_name.get(), self.client_id.get()])
 
 	def upd_temp_bill(self):
 		self.price.set(service_price[service_list.index(self.services.get())])
@@ -325,7 +315,15 @@ class Bill:
 
 
 class BillSearch:
+	"""
+	Class that determine the GUI and algoritm to search bills and generate reports
+	"""
+
 	def __init__(self, main):
+		"""
+		call the GUI and load all the available bills
+		:param main: root tkinter object
+		"""
 		self.main = main
 		self.sub_window, self.sub_canva = top_level()
 		self.services_view = ttk.Treeview(self.sub_canva, selectmode='browse', height=10, show="tree")
@@ -348,11 +346,6 @@ class BillSearch:
 		self.min_date = datetime.date(self.min_year.get(), self.min_month.get(), self.min_day.get())
 
 		self.total = IntVar()
-		self.taxes = IntVar()
-		self.total_with_taxes = IntVar()
-
-		self.bills = []
-		self.selected_bill = ""
 
 		self.search_bill()
 
@@ -399,20 +392,19 @@ class BillSearch:
 
 		# labels
 
-		total = Label(sub_canva, width=14, bg="HotPink3", textvariable=self.total_with_taxes)
+		total = Label(sub_canva, width=14, bg="HotPink3", textvariable=self.total)
 		total.place(x=438, y=548, height=33)
-		print("asdda")
 
 		# buttons
 
 		report_button = Button(sub_canva, text="Report", bg="seashell3", height=1, width=8,
-		                       command=(lambda: self.call_add_button())).place(x=592, y=331)
+		                       command=(lambda: self.make_report())).place(x=592, y=331)
 
 		pdf_bill = Button(sub_canva, text="!", bg="seashell3", height=1, width=8,
 		                  command=lambda: self.item_pdf()).place(x=592, y=402)
 
-		delete_bill = Button(sub_canva, text="x", bg="seashell3", height=1, width=8,
-		                     command=lambda: self.sub_window.destroy()).place(x=592, y=472)
+		delete_bill = Button(sub_canva, text="X", bg="seashell3", height=1, width=8,
+		                     command=lambda: self.delete_bill()).place(x=592, y=472)
 
 		# events
 		min_year.bind("<<ComboboxSelected>>", lambda event: self.days_sort())
@@ -423,7 +415,10 @@ class BillSearch:
 		max_day.bind("<<ComboboxSelected>>", lambda event: self.days_sort())
 
 	def tree_insert(self, arg=False):
-
+		if arg:
+			self.total.set(0)
+			for item in self.services_view.get_children():
+				self.services_view.delete(item)
 		list = []
 		for bills in os.listdir("invoices/"):
 			# load available bills id
@@ -431,9 +426,7 @@ class BillSearch:
 			list.append(bills[:indice])
 
 		for bill in list:
-			if arg:
-				for item in self.services_view.get_children():
-					self.services_view.delete(item)
+
 			# load bill data
 			file = open("bills/" + bill + ".txt", "r")
 			file = file.read().splitlines()
@@ -457,12 +450,74 @@ class BillSearch:
 
 	def item_pdf(self):
 		item = self.services_view.item(self.services_view.focus())
-		os.startfile(os.getcwd()+"/invoices/"+item["text"]+".pdf")
-		print("help")
+		os.startfile(os.getcwd() + "/invoices/" + item["text"] + ".pdf")
 
+	def delete_bill(self):
+		item = self.services_view.item(self.services_view.focus())
+
+		os.remove(os.getcwd() + "/invoices/" + item["text"] + ".pdf")
+		self.tree_insert(True)
+
+	def make_report(self):
+		# Create a pdf using the txt as template
+		# put a header
+		pdf_bill = FPDF('P', 'mm', 'A4')
+		pdf_bill.add_page()
+		pdf_bill.set_font("times", "B", 30)
+		pdf_bill.image("Plantillas menu/3clogo.png", 10, 8, 70)
+		pdf_bill.cell(80)
+		pdf_bill.cell(70, 10, ("Report"), 1, 1, 'C')
+		pdf_bill.ln(10)
+
+		# put the data
+		pdf_bill.set_font("helvetica", size=12)
+		pdf_bill.cell(20, 10, ("Bill"), 1, 0)
+		pdf_bill.cell(2)
+		pdf_bill.cell(70, 10, ("Client"), 1, 0)
+		pdf_bill.cell(2)
+		pdf_bill.cell(70, 10, ("Sub total"), 1, 1)
+
+		for bills in os.listdir("bills/"):
+			# load bill data
+			file = open("bills/" + bills, "r")
+			file = file.read().splitlines()
+			date = file[3]
+			date = date.split(":")[0]
+			date = date.split("-")
+			date = datetime.date(int(date[0]), int(date[1]), int(date[2]))
+			# check if the bill satisfy the date condition
+
+			if self.max_date > date > self.min_date:
+				pdf_bill.cell(20, 10, (bills.split(".")[0]), 1, 0, "C")
+				pdf_bill.cell(2)
+				pdf_bill.cell(70, 10, (file[1]), 1, 0)
+				pdf_bill.cell(2)
+				pdf_bill.cell(70, 10, (file[-1]), 1, 0)
+				pdf_bill.ln()
+				self.total.set(self.total.get() + int(file[-1]))
+
+		pdf_bill.ln(3)
+		pdf_bill.cell(95)
+		pdf_bill.cell(15, 10, ("taxes"), 1, 0, "C")
+		pdf_bill.cell(40, 10, (str(self.total.get() * 0.13)), 1, 1)
+		pdf_bill.cell(95)
+		pdf_bill.cell(15, 10, ("Total"), 1, 0, "C")
+		pdf_bill.cell(40, 10, (str(self.total.get())), 1, 0)
+
+		pdf_bill.output("reports/report.pdf", 'F')
+		os.startfile(os.getcwd() + "/reports/report.pdf")
 
 
 def create_scroll(canvas, object, orientation, x=0, y=0):
+	"""
+	Auto create a scroll that adapt to the parent object
+	:param canvas: canvas to insert the scroll
+	:param object: parent objecto of the scroll
+	:param orientation: "vertical" or "horizontal"
+	:param x: position to place the scroll
+	:param y: position to place the scroll
+	:return: scroll widget
+	"""
 	if orientation == "vertical":
 		orientation = "vertical"
 	else:
@@ -473,6 +528,10 @@ def create_scroll(canvas, object, orientation, x=0, y=0):
 
 
 def load_clients():
+	"""
+	load all the clients id, clients names and clients emails in the globals variable
+	:return: None
+	"""
 	global clients_list, clients_names, clients_emails
 	list = []
 	list2 = []
@@ -491,16 +550,25 @@ def load_clients():
 	clients_list = list
 	clients_names = list2
 	clients_emails = list3
-	print([list, list2, list3])
 
 
 def data_range(max: int, min: int = 0):
+	"""
+	create a inverse list to easiest the input
+	:param max: The top limit of the range
+	:param min: The bottom limit og the range, by default is 0
+	:return: a list start form the top of the range and end in the bottom
+	"""
 	if max == min:
 		return []
 	return [max] + data_range(max - 1, min)
 
 
 def load_services():
+	"""
+	load in the global variables all the services than can use the bill
+	:return: None
+	"""
 	global service_list, service_price
 	list = []
 	list2 = []
@@ -514,28 +582,37 @@ def load_services():
 
 
 def number_bill():
-	number = 0
-	bills = os.listdir("invoices/")
+	"""
+	generate a number for the bill
+	:return: number bill autoo generated
+	"""
+	number: int = 0
+	bills = os.listdir("bills/")
 	for number in bills:
-		indice = number.find(".pdf")
+		indice = number.find(".txt")
 		number = number[:indice]
 		number = int(number)
 	return number + 1
 
 
 def load_users():
+	"""
+	search for all the user name in the data base and create his face encodings
+	:return: None
+	"""
 	for user in os.listdir("user_database"):
-		print(user)
 		image = face_recognition.load_image_file(r"user_database/" + user)
 		face_encoding = face_recognition.face_encodings(
 			image, num_jitters=1)[0]
-		print(face_encoding)
 		faces.append(face_encoding)
 		users.append(user)
-	print(faces)
 
 
 def login_image():
+	"""
+	Create a img to compare with the database
+	:return: None
+	"""
 	cam = cv2.VideoCapture(0)
 
 	cv2.namedWindow("FaceCapture")
@@ -560,6 +637,10 @@ def login_image():
 
 
 def login():
+	"""
+	Check all the images in the database and compare with the img form login image
+	:return: a tuple that indicate if user is in the database and user
+	"""
 	# ---------------------------------------------------------------------------------
 	# This sentences will load and encode the image and face of the person trying to login
 	image_of_user = face_recognition.load_image_file(
@@ -583,6 +664,9 @@ def login():
 
 
 def top_level():
+	"""
+	:return: a tuple with a topelevel quith title and size defined and they canvas
+	"""
 	global main_window
 	window = Toplevel()
 	window.title("3C")
