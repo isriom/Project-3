@@ -78,10 +78,10 @@ class Menu:
 
 		# delete_bill
 		delete_bill_button = Button(self.menu_canva, text="Delete Bill", bg="#FBC281", height=4, width=21,
-		                            command=lambda: (self.delete_bill())).place(x=535, y=197)
+		                            command=lambda: (BillSearch(self))).place(x=535, y=197)
 		# generate_report
 		generate_report_button = Button(self.menu_canva, text="Generate Report", bg="#FBC281", height=4, width=21,
-		                                command=lambda: (self.generate_report())).place(x=535, y=279)
+		                                command=lambda: (BillSearch(self))).place(x=535, y=279)
 		# add_services
 		add_services_button = Button(self.menu_canva, text="Add Services", bg="#FBC281", height=4, width=21,
 		                             command=lambda: (self.add_services())).place(x=535, y=361)
@@ -259,7 +259,7 @@ class Bill:
 				bill = bill + "\n"
 			file = open(r"bills/" + str(self.bil_number.get()) + ".txt", "x")
 			print(["as", bill])
-			file.write(bill)
+			file.write(bill + "total" + "\n" + str(self.total_with_taxes.get()))
 			file.close()
 
 			# Create a pdf using the txt as template
@@ -370,30 +370,31 @@ class BillSearch:
 		self.services_view.column("total bill", width=110)
 		self.services_view.place(x=18, y=346)
 		scroll = create_scroll(sub_canva, self.services_view, "vertical", x=548, y=348)
+		self.tree_insert()
 
 		# combobox´s
 		min_day = ttk.Combobox(sub_canva, state="normal", width=6, text="day", textvariable=self.min_day)
-		min_day["values"] = range(30)
+		min_day["values"] = data_range(30)
 		min_day.place(x=70, y=229, height=30)
 
 		min_month = ttk.Combobox(sub_canva, state="normal", width=6, text="month", textvariable=self.min_month)
-		min_month["values"] = range(12)
+		min_month["values"] = data_range(12)
 		min_month.place(x=132, y=229, height=30)
 
 		min_year = ttk.Combobox(sub_canva, state="normal", width=6, text="year", textvariable=self.min_year)
-		min_year["values"] = range(1970, datetime.date.today().year)
+		min_year["values"] = data_range(datetime.date.today().year, 1970)
 		min_year.place(x=195, y=229, height=30)
 
 		max_day = ttk.Combobox(sub_canva, state="normal", width=6, text="day", textvariable=self.max_day)
-		max_day["values"] = range(30)
+		max_day["values"] = data_range(30)
 		max_day.place(x=443, y=229, height=30)
 
 		max_month = ttk.Combobox(sub_canva, state="normal", width=6, text="month", textvariable=self.max_month)
-		max_month["values"] = range(12)
+		max_month["values"] = data_range(12)
 		max_month.place(x=505, y=229, height=30)
 
 		max_year = ttk.Combobox(sub_canva, state="normal", width=6, text="year", textvariable=self.max_year)
-		max_year["values"] = [range(1970, datetime.date.today().year+1)][0]
+		max_year["values"] = data_range(datetime.date.today().year + 1, 1970)
 		max_year.place(x=568, y=229, height=30)
 
 		# labels
@@ -408,7 +409,7 @@ class BillSearch:
 		                       command=(lambda: self.call_add_button())).place(x=592, y=331)
 
 		pdf_bill = Button(sub_canva, text="!", bg="seashell3", height=1, width=8,
-		                  command=lambda: (self.add_client(self.services_view))).place(x=592, y=402)
+		                  command=lambda: self.item_pdf).place(x=592, y=402)
 
 		delete_bill = Button(sub_canva, text="x", bg="seashell3", height=1, width=8,
 		                     command=lambda: self.sub_window.destroy()).place(x=592, y=472)
@@ -421,99 +422,43 @@ class BillSearch:
 		max_month.bind("<<ComboboxSelected>>", lambda event: self.days_sort())
 		max_day.bind("<<ComboboxSelected>>", lambda event: self.days_sort())
 
-	def clear_bill_services(self):
-		try:
-			service = self.services_view.selection()[0]
-			amount = self.services_view.item(service)["values"][1]
-			self.total.set(self.total.get() - int(amount))
-			self.taxes.set(self.total.get() * 0.13)
-			self.total_with_taxes.set(self.total.get() + self.taxes.get())
-			self.self.services_view.delete(service)
-		finally:
-			self.services.set("")
-			self.quantity.set(0)
+	def tree_insert(self, arg=False):
 
-	def add_client(self, tree):
-		if self.client_id.get() in clients_list:
-			# Create a txt
-			bill = "Client" + "\n" + self.client_id.get() + ":" + self.client_name.get() + "\n" + "Dates" + "\n" + str(
-				self.date) + ":" + str(
-				self.due_date) + "\n" + "Services            Quantity        Total" + "\n"
-			services = 0
-			for line in tree.get_children():
-				bill = bill + str(tree.item(line)["text"])
-				for value in tree.item(line)['values']:
-					bill = bill + " " + str(value)
-				bill = bill + "\n"
-			file = open(r"bills/" + str(self.bil_number.get()) + ".txt", "x")
-			print(["as", bill])
-			file.write(bill)
-			file.close()
+		list = []
+		for bills in os.listdir("invoices/"):
+			# load available bills id
+			indice = bills.find(".pdf")
+			list.append(bills[:indice])
 
-			# Create a pdf using the txt as template
-			# put a header
-			pdf_bill = FPDF('P', 'mm', 'A4')
-			pdf_bill.add_page()
-			pdf_bill.set_font("times", "B", 30)
-			pdf_bill.image("Plantillas menu/3clogo.png", 10, 8, 70)
-			pdf_bill.cell(80)
-			pdf_bill.cell(70, 10, ("Bill:  " + str(self.bil_number.get()) + "°"), 1, 1, 'C')
-			pdf_bill.ln(10)
-			# put the data
-			pdf_bill.set_font("helvetica", size=12)
-			for line in bill.split("\n"):
-				pdf_bill.cell(600, 3, str(line), 0, 1)
-				pdf_bill.ln()
-			pdf_bill.cell(600, 3, "total:" + str(self.total.get()), 0, 1)
-			pdf_bill.output("invoices/" + str(self.bil_number.get()) + ".pdf", 'F')
-			file = open(r"clients/" + str(self.client_id.get()) + ".txt", "a")
-			file.write("\n" + str(self.bil_number.get()))
+		for bill in list:
+			if arg:
+				for item in self.services_view.get_children():
+					self.services_view.delete(item)
+			# load bill data
+			file = open("bills/" + bill + ".txt", "r")
+			file = file.read().splitlines()
+			date = file[3]
+			date = date.split(":")[0]
+			date = date.split("-")
+			date = datetime.date(int(date[0]), int(date[1]), int(date[2]))
+			# check if the bill satisfy the date condition
+			if self.max_date > date > self.min_date:
+				self.services_view.insert('', 'end', text=bill, values=(
+					file[1], file[3], file[-1]))
+				self.total.set(self.total.get() + int(file[-1]))
 
-		else:
-			new_client = self.client_id.get()
-			client_name = self.client_name.get()
-			client_email = self.client_email.get()
-			new_client = Client(new_client, client_name, client_email)
-			new_client.add_client()
-			self.add_client(tree)
-
-	def tree_insert(self, tree):
-		tree.insert('', 'end', text=self.services.get(), values=(
-			self.quantity.get(), self.quantity.get() * service_price[service_list.index(self.services.get())]))
-		self.total.set(self.total.get() + self.sub_total.get())
-		self.taxes.set(self.total.get() * 0.13)
-		self.total_with_taxes.set(self.total.get() + self.taxes.get())
-		"""need to get the price of the services"""
 		return
-
-	def found_bills(self):
-		if self.client_id.get() in clients_list:
-			indice = clients_list.index(self.client_id.get())
-			self.client_email.set(clients_emails[indice])
-			self.client_name.set(clients_names[indice])
-		if self.client_name.get() in clients_names:
-			indice = clients_names.index(self.client_name.get())
-			self.client_email.set(clients_emails[indice])
-			self.client_id.set(clients_list[indice])
-		print([self.client_email.get(), self.client_name.get(), self.client_id.get()])
-
-	def upd_temp_bill(self):
-		self.price.set(service_price[service_list.index(self.services.get())])
-		self.sub_total.set(self.price.get() * self.quantity.get())
-
-	def select_item(self, event):
-		service = self.services_view.item(self.services_view.focus())
-		self.services.set(service["text"])
-		self.quantity.set(service["values"][0])
-
-	def call_add_button(self):
-		self.upd_temp_bill()
-		self.tree_insert(self.services_view)
 
 	def days_sort(self):
 		self.max_date = datetime.date(self.max_year.get(), self.max_month.get(), self.max_day.get())
 		self.min_date = datetime.date(self.min_year.get(), self.min_month.get(), self.min_day.get())
+		self.tree_insert(True)
 		pass
+
+	def item_pdf(self):
+		item = self.services_view.item(self.services_view.focus())
+		os.system("invoices/"+item["text"]+".pdf")
+
 
 
 def create_scroll(canvas, object, orientation, x=0, y=0):
@@ -546,6 +491,12 @@ def load_clients():
 	clients_names = list2
 	clients_emails = list3
 	print([list, list2, list3])
+
+
+def data_range(max: int, min: int = 0):
+	if max == min:
+		return []
+	return [max] + data_range(max - 1, min)
 
 
 def load_services():
