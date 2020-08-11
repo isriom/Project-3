@@ -74,7 +74,7 @@ class Menu:
 
 		# search_bill
 		search_bill_button = Button(self.menu_canva, text="Search Bill", bg="#FBC281", height=4, width=21,
-		                            command=lambda: (self.search_bill())).place(x=535, y=115)
+		                            command=lambda: (BillSearch(self))).place(x=535, y=115)
 
 		# delete_bill
 		delete_bill_button = Button(self.menu_canva, text="Delete Bill", bg="#FBC281", height=4, width=21,
@@ -92,14 +92,6 @@ class Menu:
 		generate_pdf_button = Button(self.menu_canva, text="Generate pdf", bg="#FBC281", height=4, width=21,
 		                             command=lambda: (self.generate_pdf())).place(x=535, y=526)
 		self.window.mainloop()
-
-	def update_price_bill(self, quantity, service):
-		pass
-
-	def search_bill(self):
-		sub_window, sub_canva = top_level()
-		make_bill_text = Label(
-			sub_canva, text="search_bill", bg="White", anchor=S).pack()
 
 	def delete_bill(self):
 		sub_window, sub_canva = top_level()
@@ -136,12 +128,12 @@ class Bill:
 		self.sub_window, self.sub_canva = top_level()
 		self.services_view = ttk.Treeview(self.sub_canva, selectmode='browse', height=6, show="tree")
 		self.client_id = StringVar()
-		self.client_id.set("EM"+str(len(os.listdir("clients/"))+1))
+		self.client_id.set("EM" + str(len(os.listdir("clients/")) + 1))
 		self.client_name = StringVar()
 		self.client_email = StringVar()
 		self.bil_number = IntVar()
 		self.bil_number.set(number_bill())
-		self.date = "%/%/%"
+		self.date = datetime.date.today()
 		self.due_date = ""
 		self.services_data = []
 		self.services = StringVar()
@@ -159,14 +151,12 @@ class Bill:
 		sub_window.bill_image = PhotoImage(file="Plantillas menu/Bill.png")
 		sub_canva.create_image(350, 300, image=sub_window.bill_image)
 		sub_canva.create_image(350, 73, image=self.main.logo_3C)
-		self.date = datetime.date.today()
 		bill_time = datetime.timedelta(days=2)
 		self.due_date = self.date + bill_time
 
 		# tree
 		services_view = self.services_view
-		ttk.Style().configure("Treeview", background="SpringGreen3",
-		                      foreground="SpringGreen2")
+
 		services_view["columns"] = ("quantity", "sub total")
 		services_view.column("#0", width=255)  # services
 		services_view.column("quantity", width=160)
@@ -334,13 +324,205 @@ class Bill:
 		self.tree_insert(self.services_view)
 
 
+class BillSearch:
+	def __init__(self, main):
+		self.main = main
+		self.sub_window, self.sub_canva = top_level()
+		self.services_view = ttk.Treeview(self.sub_canva, selectmode='browse', height=10, show="tree")
+
+		self.min_day = IntVar()
+		self.min_day.set(1)
+		self.min_month = IntVar()
+		self.min_month.set(1)
+		self.min_year = IntVar()
+		self.min_year.set(1970)
+
+		self.max_day = IntVar()
+		self.max_day.set(28)
+		self.max_month = IntVar()
+		self.max_month.set(12)
+		self.max_year = IntVar()
+		self.max_year.set(9999)
+
+		self.max_date = datetime.date(self.max_year.get(), self.max_month.get(), self.max_day.get())
+		self.min_date = datetime.date(self.min_year.get(), self.min_month.get(), self.min_day.get())
+
+		self.total = IntVar()
+		self.taxes = IntVar()
+		self.total_with_taxes = IntVar()
+
+		self.bills = []
+		self.selected_bill = ""
+
+		self.search_bill()
+
+	def search_bill(self):
+		sub_window, sub_canva = self.sub_window, self.sub_canva
+		sub_window.bill_search_image = PhotoImage(file="Plantillas menu/Bill search.png")
+		sub_canva.create_image(350, 300, image=sub_window.bill_search_image)
+		sub_canva.create_image(350, 73, image=self.main.logo_3C)
+
+		# tree
+		self.services_view["columns"] = ("Client", "Dates", "total bill")
+		self.services_view.column("#0", width=70)  # services
+		self.services_view.column("Client", width=170)
+		self.services_view.column("Dates", width=170)
+		self.services_view.column("total bill", width=110)
+		self.services_view.place(x=18, y=346)
+		scroll = create_scroll(sub_canva, self.services_view, "vertical", x=548, y=348)
+
+		# combobox´s
+		min_day = ttk.Combobox(sub_canva, state="normal", width=6, text="day", textvariable=self.min_day)
+		min_day["values"] = range(30)
+		min_day.place(x=70, y=229, height=30)
+
+		min_month = ttk.Combobox(sub_canva, state="normal", width=6, text="month", textvariable=self.min_month)
+		min_month["values"] = range(12)
+		min_month.place(x=132, y=229, height=30)
+
+		min_year = ttk.Combobox(sub_canva, state="normal", width=6, text="year", textvariable=self.min_year)
+		min_year["values"] = range(1970, datetime.date.today().year)
+		min_year.place(x=195, y=229, height=30)
+
+		max_day = ttk.Combobox(sub_canva, state="normal", width=6, text="day", textvariable=self.max_day)
+		max_day["values"] = range(30)
+		max_day.place(x=443, y=229, height=30)
+
+		max_month = ttk.Combobox(sub_canva, state="normal", width=6, text="month", textvariable=self.max_month)
+		max_month["values"] = range(12)
+		max_month.place(x=505, y=229, height=30)
+
+		max_year = ttk.Combobox(sub_canva, state="normal", width=6, text="year", textvariable=self.max_year)
+		max_year["values"] = [range(1970, datetime.date.today().year+1)][0]
+		max_year.place(x=568, y=229, height=30)
+
+		# labels
+
+		total = Label(sub_canva, width=14, bg="HotPink3", textvariable=self.total_with_taxes)
+		total.place(x=438, y=548, height=33)
+		print("asdda")
+
+		# buttons
+
+		report_button = Button(sub_canva, text="Report", bg="seashell3", height=1, width=8,
+		                       command=(lambda: self.call_add_button())).place(x=592, y=331)
+
+		pdf_bill = Button(sub_canva, text="!", bg="seashell3", height=1, width=8,
+		                  command=lambda: (self.add_client(self.services_view))).place(x=592, y=402)
+
+		delete_bill = Button(sub_canva, text="x", bg="seashell3", height=1, width=8,
+		                     command=lambda: self.sub_window.destroy()).place(x=592, y=472)
+
+		# events
+		min_year.bind("<<ComboboxSelected>>", lambda event: self.days_sort())
+		min_month.bind("<<ComboboxSelected>>", lambda event: self.days_sort())
+		min_day.bind("<<ComboboxSelected>>", lambda event: self.days_sort())
+		max_year.bind("<<ComboboxSelected>>", lambda event: self.days_sort())
+		max_month.bind("<<ComboboxSelected>>", lambda event: self.days_sort())
+		max_day.bind("<<ComboboxSelected>>", lambda event: self.days_sort())
+
+	def clear_bill_services(self):
+		try:
+			service = self.services_view.selection()[0]
+			amount = self.services_view.item(service)["values"][1]
+			self.total.set(self.total.get() - int(amount))
+			self.taxes.set(self.total.get() * 0.13)
+			self.total_with_taxes.set(self.total.get() + self.taxes.get())
+			self.self.services_view.delete(service)
+		finally:
+			self.services.set("")
+			self.quantity.set(0)
+
+	def add_client(self, tree):
+		if self.client_id.get() in clients_list:
+			# Create a txt
+			bill = "Client" + "\n" + self.client_id.get() + ":" + self.client_name.get() + "\n" + "Dates" + "\n" + str(
+				self.date) + ":" + str(
+				self.due_date) + "\n" + "Services            Quantity        Total" + "\n"
+			services = 0
+			for line in tree.get_children():
+				bill = bill + str(tree.item(line)["text"])
+				for value in tree.item(line)['values']:
+					bill = bill + " " + str(value)
+				bill = bill + "\n"
+			file = open(r"bills/" + str(self.bil_number.get()) + ".txt", "x")
+			print(["as", bill])
+			file.write(bill)
+			file.close()
+
+			# Create a pdf using the txt as template
+			# put a header
+			pdf_bill = FPDF('P', 'mm', 'A4')
+			pdf_bill.add_page()
+			pdf_bill.set_font("times", "B", 30)
+			pdf_bill.image("Plantillas menu/3clogo.png", 10, 8, 70)
+			pdf_bill.cell(80)
+			pdf_bill.cell(70, 10, ("Bill:  " + str(self.bil_number.get()) + "°"), 1, 1, 'C')
+			pdf_bill.ln(10)
+			# put the data
+			pdf_bill.set_font("helvetica", size=12)
+			for line in bill.split("\n"):
+				pdf_bill.cell(600, 3, str(line), 0, 1)
+				pdf_bill.ln()
+			pdf_bill.cell(600, 3, "total:" + str(self.total.get()), 0, 1)
+			pdf_bill.output("invoices/" + str(self.bil_number.get()) + ".pdf", 'F')
+			file = open(r"clients/" + str(self.client_id.get()) + ".txt", "a")
+			file.write("\n" + str(self.bil_number.get()))
+
+		else:
+			new_client = self.client_id.get()
+			client_name = self.client_name.get()
+			client_email = self.client_email.get()
+			new_client = Client(new_client, client_name, client_email)
+			new_client.add_client()
+			self.add_client(tree)
+
+	def tree_insert(self, tree):
+		tree.insert('', 'end', text=self.services.get(), values=(
+			self.quantity.get(), self.quantity.get() * service_price[service_list.index(self.services.get())]))
+		self.total.set(self.total.get() + self.sub_total.get())
+		self.taxes.set(self.total.get() * 0.13)
+		self.total_with_taxes.set(self.total.get() + self.taxes.get())
+		"""need to get the price of the services"""
+		return
+
+	def found_bills(self):
+		if self.client_id.get() in clients_list:
+			indice = clients_list.index(self.client_id.get())
+			self.client_email.set(clients_emails[indice])
+			self.client_name.set(clients_names[indice])
+		if self.client_name.get() in clients_names:
+			indice = clients_names.index(self.client_name.get())
+			self.client_email.set(clients_emails[indice])
+			self.client_id.set(clients_list[indice])
+		print([self.client_email.get(), self.client_name.get(), self.client_id.get()])
+
+	def upd_temp_bill(self):
+		self.price.set(service_price[service_list.index(self.services.get())])
+		self.sub_total.set(self.price.get() * self.quantity.get())
+
+	def select_item(self, event):
+		service = self.services_view.item(self.services_view.focus())
+		self.services.set(service["text"])
+		self.quantity.set(service["values"][0])
+
+	def call_add_button(self):
+		self.upd_temp_bill()
+		self.tree_insert(self.services_view)
+
+	def days_sort(self):
+		self.max_date = datetime.date(self.max_year.get(), self.max_month.get(), self.max_day.get())
+		self.min_date = datetime.date(self.min_year.get(), self.min_month.get(), self.min_day.get())
+		pass
+
+
 def create_scroll(canvas, object, orientation, x=0, y=0):
 	if orientation == "vertical":
 		orientation = "vertical"
 	else:
 		orientation = "horizontal"
 	scroll = ttk.Scrollbar(canvas, orient=orientation, command=object.yview)
-	scroll.place(x=x, y=y, height=object["height"] * 18.55)
+	scroll.place(x=x, y=y, height=object["height"] * 18.65)
 	return scroll
 
 
