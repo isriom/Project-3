@@ -8,7 +8,7 @@ import cv2
 import os
 from PIL import ImageTk, Image
 import datetime
-
+import webbrowser
 
 class Services:
 
@@ -409,7 +409,7 @@ class BillSearch:
 		                       command=(lambda: self.call_add_button())).place(x=592, y=331)
 
 		pdf_bill = Button(sub_canva, text="!", bg="seashell3", height=1, width=8,
-		                  command=lambda: self.item_pdf).place(x=592, y=402)
+		                  command=lambda: self.item_pdf()).place(x=592, y=402)
 
 		delete_bill = Button(sub_canva, text="x", bg="seashell3", height=1, width=8,
 		                     command=lambda: self.sub_window.destroy()).place(x=592, y=472)
@@ -457,7 +457,8 @@ class BillSearch:
 
 	def item_pdf(self):
 		item = self.services_view.item(self.services_view.focus())
-		os.system("invoices/"+item["text"]+".pdf")
+		os.startfile(os.getcwd()+"/invoices/"+item["text"]+".pdf")
+		print("help")
 
 
 
