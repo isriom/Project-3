@@ -302,10 +302,13 @@ class Bill:
 
 	def upd_temp_bill(self):
 		self.price.set(service_price[service_list.index(self.services.get())])
+		
 		self.sub_total.set(self.price.get() * self.quantity.get())
 
 	def select_item(self, event):
 		service = self.services_view.item(self.services_view.focus())
+		#if service not in service_list:
+		#	self.service_list.append(service)
 		self.services.set(service["text"])
 		self.quantity.set(service["values"][0])
 
@@ -660,7 +663,45 @@ def login():
 		return True, face_recognition.compare_faces(faces, user_face_encoding, 0.469).index(True)
 	else:
 		print("You are not in our database! Please create your profile or get in contact with support")
-		return False, -1
+		return Register(self)
+
+class Register:
+	"""
+	The register menu Class
+	"""
+	window = Tk()
+	window.title("Register")
+	menu_canva = Canvas(window, width=700, height=600, bg="White")
+	menu_canva.pack()
+	logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
+
+	# screen.create_image(238, 73, image=logo_3C)
+
+	def __init__(self, user):
+		"""
+		Call the creation of the menu GUI and load the user
+		:param user: name of the user
+		"""
+		self.user = user
+		self.menu()
+
+	def face_registration(self):
+		main_menu_image = PhotoImage(file="Plantillas menu\Add_user.png")
+		user_image = Image.open("user_database/" + self.user)
+		user_image = user_image.resize((436, 435), Image.ANTIALIAS)
+		user_photo = ImageTk.PhotoImage(user_image)
+		self.menu_canva.create_image(350, 300, image=main_menu_image)
+		self.menu_canva.create_image(238, 73, image=self.logo_3C)
+		self.menu_canva.create_image(237, 382, image=user_photo)
+		
+		
+
+
+
+
+
+
+		self.window.mainloop()
 
 
 def top_level():
