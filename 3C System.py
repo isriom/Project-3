@@ -1,14 +1,11 @@
+import datetime
+import os
 from tkinter import *  # libraries imported :GUI
 from tkinter import ttk  # libraries imported :GUI
-from typing import Iterable
-from fpdf import FPDF
-import face_recognition
-import numpy as np
 import cv2
-import os
+import face_recognition
 from PIL import ImageTk, Image
-import datetime
-import webbrowser
+from fpdf import FPDF
 
 
 class Services:
@@ -647,10 +644,9 @@ def login():
 		"user_database/user_0.png")
 	user_face_encoding = face_recognition.face_encodings(image_of_user)[0]
 	# ---------------------------------------------------------------------------------
-
+	# This compare the face encoding with all users encoding's
 	results = False
 	if True in face_recognition.compare_faces(faces, user_face_encoding, 0.469):
-		print(face_recognition.compare_faces(faces, user_face_encoding, 0.469))
 
 		results = True
 	# ---------------------------------------------------------------------------------
@@ -665,7 +661,7 @@ def login():
 
 def top_level():
 	"""
-	:return: a tuple with a topelevel quith title and size defined and they canvas
+	:return: a tuple with a topelevel with title, size and a canvas
 	"""
 	global main_window
 	window = Toplevel()
