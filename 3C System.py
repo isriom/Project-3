@@ -88,8 +88,13 @@ class Menu:
 		Button(self.menu_canva, text="Add Services", bg="#FBC281", height=4, width=21,
 		       command=lambda: (self.add_services())).place(x=535, y=361)
 		# update_services
+<<<<<<< HEAD
 		Button(self.menu_canva, text="Register", bg="#FBC281", height=4, width=21,
-		       command=lambda: (Register(self, user))).place(x=535, y=444)
+		       command=lambda: (Register(self))).place(x=535, y=444)
+=======
+		Button(self.menu_canva, text="update_services", bg="#FBC281", height=4, width=21,
+		       command=lambda: (Register())).place(x=535, y=444)
+>>>>>>> d69aa7fb2d548336bf6441038af5a6cdd9671762
 		# generate_pdf
 		Button(self.menu_canva, text="Generate pdf", bg="#FBC281", height=4, width=21,
 		       command=lambda: (BillSearch(self))).place(x=535, y=526)
@@ -110,6 +115,7 @@ class Bill:
 	"""
 	Class that determine the GUI and algorithms to create a bill and add a new client
 	"""
+
 	def __init__(self, main):
 		"""
 		call the GUI and load all the available clients
@@ -302,12 +308,12 @@ class Bill:
 
 	def upd_temp_bill(self):
 		self.price.set(service_price[service_list.index(self.services.get())])
-		
+
 		self.sub_total.set(self.price.get() * self.quantity.get())
 
 	def select_item(self, event):
 		service = self.services_view.item(self.services_view.focus())
-		#if service not in service_list:
+		# if service not in service_list:
 		#	self.service_list.append(service)
 		self.services.set(service["text"])
 		self.quantity.set(service["values"][0])
@@ -663,35 +669,92 @@ def login():
 		return True, face_recognition.compare_faces(faces, user_face_encoding, 0.469).index(True)
 	else:
 		print("You are not in our database! Please create your profile or get in contact with support")
-		return Register()
+		return False, -1
 
+<<<<<<< HEAD
 class Register:
+	logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
 
-	def __init__(self, main, user):
+	def __init__(self, main):
 
-		self.user = user
+		#self.user = user
+
+
+		self.new_name = StringVar()
+		self.new_lastname = StringVar()
+		self.age = IntVar()
+		self.user_id = IntVar()
+		self.user_email = StringVar()
 		self.main = main
 		self.sub_window, self.sub_canva = top_level()
 		self.services_view = ttk.Treeview(self.sub_canva, selectmode='browse', height=10, show="tree")
-		self.face_registration()
+		self.face_registration() 
 
 	def face_registration(self):
+
 		main_menu_image = PhotoImage(file="Plantillas menu\Add_user.png")
-		user_image = Image.open("user_database/" + self.user)
+		user_image = Image.open(r"user_database/user_0.png")
 		user_image = user_image.resize((436, 435), Image.ANTIALIAS)
 		user_photo = ImageTk.PhotoImage(user_image)
 		self.sub_canva.create_image(350, 300, image=main_menu_image)
 		self.sub_canva.create_image(238, 73, image=self.logo_3C)
+		self.sub_canva.create_image(237, 382, image=user_photo)
+		
+		#name_entry = textBox.get()
+
+		#self.name_entry.pack()
+		
+		
+		new_name = Entry(self.sub_canva, textvariable=self.new_name, width=15)
+		new_name.place(x=600, y=170, height=32)
+		new_name = self.new_name.get()
+
+		new_lastname = Entry(self.sub_canva, textvariable=self.new_lastname, width=15)
+		new_lastname.place(x=600, y=235, height=32)
+		new_lastname = self.new_lastname.get()
+
+		age = Entry(self.sub_canva, textvariable=self.age, width=15)
+		age.place(x=600, y=300, height=32)
+		age = self.age.get()
+
+		user_id = Entry(self.sub_canva, textvariable=self.user_id, width=15)
+		user_id.place(x=600, y=365, height=32)				
+		user_id = self.user_id.get()
+
+		user_email = Entry(self.sub_canva, textvariable=self.user_email, width=15)
+		user_email.place(x=600, y=430, height=32)
+		user_email = self.user_email.get()
+
+		#Button(self.sub_canva, text="Add", bg="#FBC281", height=3, width=14,
+		#       command=lambda: (self.add_worker_button())).place(x=535, y=444)		
+		
+
+	
+	def add_worker_button(self):
+		user_file = open(r"Workers/"+self.new_name.get()+self.new_lastname.get()+".txt", "w")
+		user_file.write(self.new_name.get()+"\n")
+		user_file.write(self.new_lastname.get()+"\n")
+		user_file.write(str(self.age.get())+"\n")
+		user_file.write(str(self.user_id.get())+"\n")
+		user_file.write(self.user_email.get()+"\n")
+		user_file.close()
+		
+		os.rename(r"user_database/user_0.png", r"user_database/"+self.new_name.get()+".png")
+
+		
+=======
+
+class Register(Menu):
+
+	def menu(self):
+		menu_image = PhotoImage(file="Plantillas menu\Add_user.png")
+		user_image = Image.open("user_database/" + self.user + ".png")
+		user_image = user_image.resize((436, 435), Image.ANTIALIAS)
+		user_photo = ImageTk.PhotoImage(user_image)
+		self.menu_canva.create_image(350, 300, image=menu_image)
+		self.menu_canva.create_image(238, 73, image=self.logo_3C)
 		self.menu_canva.create_image(237, 382, image=user_photo)
-		name_entry = textBox.get()
-		self.name_entry.pack()
-		
-		
-
-
-
-
-
+>>>>>>> d69aa7fb2d548336bf6441038af5a6cdd9671762
 
 		self.window.mainloop()
 
@@ -723,7 +786,12 @@ login_image()
 sucefull_login, user = login()
 if sucefull_login:
 	main_window = Menu(users[user])
+<<<<<<< HEAD
 #else:
-#	face_registration()
+#	Register(self)
+=======
+else:
+	Register("user_0")
+>>>>>>> d69aa7fb2d548336bf6441038af5a6cdd9671762
 
 os.remove("user_database/user_0.png")
