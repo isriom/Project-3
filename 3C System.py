@@ -122,11 +122,12 @@ class Menu:
 	"""
 	The main menu Class
 	"""
-	window = Tk()
-	window.title("3C")
-	menu_canva = Canvas(window, width=700, height=600, bg="White")
-	menu_canva.pack()
-	logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
+
+	# window = Tk()
+	# window.title("3C")
+	# menu_canva = Canvas(window, width=700, height=600, bg="White")
+	# menu_canva.pack()
+	# logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
 
 	# screen.create_image(238, 73, image=logo_3C)
 
@@ -135,6 +136,11 @@ class Menu:
 		Call the creation of the menu GUI and load the user
 		:param user: name of the user
 		"""
+		self.window = Tk()
+		self.window.title("3C")
+		self.menu_canva = Canvas(self.window, width=700, height=600, bg="White")
+		self.menu_canva.pack()
+		self.logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
 		self.user = user
 		self.menu()
 
@@ -162,13 +168,8 @@ class Menu:
 		Button(self.menu_canva, text="Add Services", bg="#FBC281", height=4, width=21,
 		       command=lambda: (Services(self))).place(x=535, y=361)
 		# update_services
-
-		Button(self.menu_canva, text="Register", bg="#FBC281", height=4, width=21,
-		       command=lambda: (Register(self))).place(x=535, y=444)
-
 		Button(self.menu_canva, text="update_services", bg="#FBC281", height=4, width=21,
 		       command=lambda: (Services(self))).place(x=535, y=444)
-
 		# generate_pdf
 		Button(self.menu_canva, text="Generate pdf", bg="#FBC281", height=4, width=21,
 		       command=lambda: (BillSearch(self))).place(x=535, y=526)
@@ -179,6 +180,7 @@ class Bill:
 	"""
 	Class that determine the GUI and algorithms to create a bill and add a new client
 	"""
+
 	def __init__(self, main):
 		"""
 		call the GUI and load all the available clients
@@ -577,6 +579,66 @@ class BillSearch:
 		os.startfile(os.getcwd() + "/reports/report.pdf")
 
 
+class Register:
+
+	def __init__(self):
+		self.window = Tk()
+		self.window.title("3C")
+		self.menu_canva = Canvas(self.window, width=700, height=600, bg="White")
+		self.menu_canva.pack()
+		self.logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
+		self.main_menu_image = PhotoImage(file="Plantillas menu\Add_user.png")
+		self.new_name = StringVar()
+		self.new_lastname = StringVar()
+		self.age = IntVar()
+		self.user_id = IntVar()
+		self.user_email = StringVar()
+		self.user_addrees = StringVar()
+		self.face_registration()
+
+	def face_registration(self):
+		user_image = Image.open(r"user_database/user_0.png")
+		user_image = user_image.resize((436, 435), Image.ANTIALIAS)
+		user_photo = ImageTk.PhotoImage(user_image)
+		self.menu_canva.create_image(350, 300, image=self.main_menu_image)
+		self.menu_canva.create_image(238, 73, image=self.logo_3C)
+		self.menu_canva.create_image(237, 382, image=user_photo)
+
+		new_name = Entry(self.menu_canva, textvariable=self.new_name, width=15)
+		new_name.place(x=600, y=170, height=32)
+
+		new_lastname = Entry(self.menu_canva, textvariable=self.new_lastname, width=15)
+		new_lastname.place(x=600, y=235, height=32)
+
+		age = Entry(self.menu_canva, textvariable=self.age, width=15)
+		age.place(x=600, y=300, height=32)
+
+		user_id = Entry(self.menu_canva, textvariable=self.user_id, width=15)
+		user_id.place(x=600, y=365, height=32)
+
+		user_email = Entry(self.menu_canva, textvariable=self.user_email, width=15)
+		user_email.place(x=600, y=430, height=32)
+
+		user_email = Entry(self.menu_canva, textvariable=self.user_addrees, width=32)
+		user_email.place(x=492, y=514, height=32)
+
+		Button(self.menu_canva, text="Add", bg="#FBC281", height=2, width=28,
+		       command=lambda: (self.add_worker_button())).place(x=488, y=557)
+
+		self.window.mainloop()
+
+	def add_worker_button(self):
+		user_file = open(os.getcwd() + r"/Workers/" + self.new_name.get() + self.new_lastname.get() + ".txt", "x")
+		user_file.write(self.new_name.get() + "\n")
+		user_file.write(self.new_lastname.get() + "\n")
+		user_file.write(str(self.age.get()) + "\n")
+		user_file.write(str(self.user_id.get()) + "\n")
+		user_file.write(self.user_email.get() + "\n")
+		user_file.write(self.user_addrees.get() + "\n")
+		user_file.close()
+		os.rename(r"user_database/user_0.png", r"user_database/" + self.new_name.get() + ".png")
+
+
 def create_scroll(canvas, object, orientation, x=0, y=0):
 	"""
 	Auto create a scroll that adapt to the parent object
@@ -730,93 +792,6 @@ def login():
 		return False, -1
 
 
-class Register:
-	logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
-
-	def __init__(self, main):
-
-		#self.user = user
-
-
-		self.new_name = StringVar()
-		self.new_lastname = StringVar()
-		self.age = IntVar()
-		self.user_id = IntVar()
-		self.user_email = StringVar()
-		self.main = main
-		self.sub_window, self.sub_canva = top_level()
-		self.services_view = ttk.Treeview(self.sub_canva, selectmode='browse', height=10, show="tree")
-		self.face_registration()
-
-	def face_registration(self):
-
-		main_menu_image = PhotoImage(file="Plantillas menu\Add_user.png")
-		user_image = Image.open(r"user_database/user_0.png")
-		user_image = user_image.resize((436, 435), Image.ANTIALIAS)
-		user_photo = ImageTk.PhotoImage(user_image)
-		self.sub_canva.create_image(350, 300, image=main_menu_image)
-		self.sub_canva.create_image(238, 73, image=self.logo_3C)
-		self.sub_canva.create_image(237, 382, image=user_photo)
-
-		#name_entry = textBox.get()
-
-		#self.name_entry.pack()
-
-
-		new_name = Entry(self.sub_canva, textvariable=self.new_name, width=15)
-		new_name.place(x=600, y=170, height=32)
-		new_name = self.new_name.get()
-
-		new_lastname = Entry(self.sub_canva, textvariable=self.new_lastname, width=15)
-		new_lastname.place(x=600, y=235, height=32)
-		new_lastname = self.new_lastname.get()
-
-		age = Entry(self.sub_canva, textvariable=self.age, width=15)
-		age.place(x=600, y=300, height=32)
-		age = self.age.get()
-
-		user_id = Entry(self.sub_canva, textvariable=self.user_id, width=15)
-		user_id.place(x=600, y=365, height=32)
-		user_id = self.user_id.get()
-
-		user_email = Entry(self.sub_canva, textvariable=self.user_email, width=15)
-		user_email.place(x=600, y=430, height=32)
-		user_email = self.user_email.get()
-
-		#Button(self.sub_canva, text="Add", bg="#FBC281", height=3, width=14,
-		#       command=lambda: (self.add_worker_button())).place(x=535, y=444)
-
-
-
-	def add_worker_button(self):
-		user_file = open(r"Workers/"+self.new_name.get()+self.new_lastname.get()+".txt", "w")
-		user_file.write(self.new_name.get()+"\n")
-		user_file.write(self.new_lastname.get()+"\n")
-		user_file.write(str(self.age.get())+"\n")
-		user_file.write(str(self.user_id.get())+"\n")
-		user_file.write(self.user_email.get()+"\n")
-		user_file.close()
-
-		os.rename(r"user_database/user_0.png", r"user_database/"+self.new_name.get()+".png")
-
-
-=======
-
-class Register(Menu):
-
-	def menu(self):
-		menu_image = PhotoImage(file="Plantillas menu\Add_user.png")
-		user_image = Image.open("user_database/" + self.user + ".png")
-		user_image = user_image.resize((436, 435), Image.ANTIALIAS)
-		user_photo = ImageTk.PhotoImage(user_image)
-		self.menu_canva.create_image(350, 300, image=menu_image)
-		self.menu_canva.create_image(238, 73, image=self.logo_3C)
-		self.menu_canva.create_image(237, 382, image=user_photo)
->>>>>>> d69aa7fb2d548336bf6441038af5a6cdd9671762
-
-		self.window.mainloop()
-
-
 def top_level():
 	"""
 	:return: a tuple with a topelevel with title, size and a canvas
@@ -843,8 +818,8 @@ load_services()
 login_image()
 sucefull_login, user = login()
 if sucefull_login:
+	os.remove("user_database/user_0.png")
 	main_window = Menu(users[user])
 else:
-	Register("user_0")
-
+	new_user = Register()
 os.remove("user_database/user_0.png")
