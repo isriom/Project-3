@@ -88,8 +88,8 @@ class Menu:
 		Button(self.menu_canva, text="Add Services", bg="#FBC281", height=4, width=21,
 		       command=lambda: (self.add_services())).place(x=535, y=361)
 		# update_services
-		Button(self.menu_canva, text="update_services", bg="#FBC281", height=4, width=21,
-		       command=lambda: (Register())).place(x=535, y=444)
+		Button(self.menu_canva, text="Register", bg="#FBC281", height=4, width=21,
+		       command=lambda: (Register(self, user))).place(x=535, y=444)
 		# generate_pdf
 		Button(self.menu_canva, text="Generate pdf", bg="#FBC281", height=4, width=21,
 		       command=lambda: (BillSearch(self))).place(x=535, y=526)
@@ -110,7 +110,6 @@ class Bill:
 	"""
 	Class that determine the GUI and algorithms to create a bill and add a new client
 	"""
-
 	def __init__(self, main):
 		"""
 		call the GUI and load all the available clients
@@ -303,12 +302,12 @@ class Bill:
 
 	def upd_temp_bill(self):
 		self.price.set(service_price[service_list.index(self.services.get())])
-
+		
 		self.sub_total.set(self.price.get() * self.quantity.get())
 
 	def select_item(self, event):
 		service = self.services_view.item(self.services_view.focus())
-		# if service not in service_list:
+		#if service not in service_list:
 		#	self.service_list.append(service)
 		self.services.set(service["text"])
 		self.quantity.set(service["values"][0])
@@ -664,19 +663,35 @@ def login():
 		return True, face_recognition.compare_faces(faces, user_face_encoding, 0.469).index(True)
 	else:
 		print("You are not in our database! Please create your profile or get in contact with support")
-		return False, -1
+		return Register()
 
+class Register:
 
-class Register(Menu):
+	def __init__(self, main, user):
 
-	def menu(self):
-		menu_image = PhotoImage(file="Plantillas menu\Add_user.png")
-		user_image = Image.open("user_database/" + self.user + ".png")
+		self.user = user
+		self.main = main
+		self.sub_window, self.sub_canva = top_level()
+		self.services_view = ttk.Treeview(self.sub_canva, selectmode='browse', height=10, show="tree")
+		self.face_registration()
+
+	def face_registration(self):
+		main_menu_image = PhotoImage(file="Plantillas menu\Add_user.png")
+		user_image = Image.open("user_database/" + self.user)
 		user_image = user_image.resize((436, 435), Image.ANTIALIAS)
 		user_photo = ImageTk.PhotoImage(user_image)
-		self.menu_canva.create_image(350, 300, image=menu_image)
-		self.menu_canva.create_image(238, 73, image=self.logo_3C)
+		self.sub_canva.create_image(350, 300, image=main_menu_image)
+		self.sub_canva.create_image(238, 73, image=self.logo_3C)
 		self.menu_canva.create_image(237, 382, image=user_photo)
+		name_entry = textBox.get()
+		self.name_entry.pack()
+		
+		
+
+
+
+
+
 
 		self.window.mainloop()
 
@@ -708,7 +723,7 @@ login_image()
 sucefull_login, user = login()
 if sucefull_login:
 	main_window = Menu(users[user])
-else:
-	Register("user_0")
+#else:
+#	face_registration()
 
 os.remove("user_database/user_0.png")
