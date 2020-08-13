@@ -10,15 +10,92 @@ from fpdf import FPDF
 
 class Services:
 
-	def __init__(self, name, price):
-		self.name = name
-		self.price = price
-		service_list.append(self)
+	def __init__(self, main):
+		load_services()
+		self.main = main
+		self.sub_window, self.sub_canva = top_level()
+		self.services_view = ttk.Treeview(self.sub_canva, selectmode='browse', height=10, show="tree")
+		self.description = StringVar()
+		self.service = StringVar()
+		self.price = IntVar()
+		self.menu()
+
+	def menu(self):
+		sub_window, sub_canva = self.sub_window, self.sub_canva
+		sub_window.service_image = PhotoImage(file="Plantillas menu/Services update.png")
+		sub_canva.create_image(350, 300, image=sub_window.service_image)
+		sub_canva.create_image(350, 73, image=self.main.logo_3C)
+		self.tree_insert()
+		self.service.set("S" + str(len(os.listdir("services/")) + 1))
+		# tree
+		services_view = self.services_view
+		services_view["columns"] = ("Description", "Price")
+		services_view.column("#0", width=255)  # services
+		services_view.column("Description", width=165)
+		services_view.column("Price", width=100)
+		services_view.place(x=18, y=348)
+		scroll = create_scroll(sub_canva, services_view, "vertical", x=549, y=348)
+
+		# entry
+		services = Entry(sub_canva, textvariable=self.service, width=22)
+		services.place(x=90, y=245, height=32)
+
+		description = Entry(sub_canva, textvariable=self.description, width=42)
+		description.place(x=252, y=245, height=32)
+
+		price = Entry(sub_canva, textvariable=self.price, width=14)
+		price.place(x=522, y=245, height=32)
+
+		# buttons
+		delete_services_button = Button(sub_canva, text="X", bg="seashell3", height=1, width=8,
+		                                command=lambda: (self.delete_services())).place(x=608, y=430)
+
+		add_services_button = Button(sub_canva, text="!", bg="seashell3", height=1, width=8,
+		                             command=(lambda: self.add_service())).place(x=608, y=491)
+
+		update_services_button = Button(sub_canva, text="↻", bg="#FBC281", height=1, width=8,
+		                                command=lambda: (self.add_service())).place(x=608, y=367)
+
+		# events
+		services_view.bind('<ButtonRelease-1>', self.select_item)
 
 	def add_service(self):
-		file = open(r"clients/" + self.name + ".txt", "x")
-		service = "" + self.name + "\n" + self.price
+		file = open(r"services/" + self.service.get() + ".txt", "x")
+		service = "" + self.description.get() + "\n" + str(self.price.get())
 		file.write(service)
+		file.close()
+		load_services()
+		self.tree_insert(True)
+		self.service.set("S" + str(len(os.listdir("services/")) + 1))
+		self.description.set("")
+		self.price.set(0)
+
+	def select_item(self, event):
+		tree = self.services_view.item(self.services_view.focus())
+		self.service.set(tree["text"])
+		self.description.set(tree["values"][0])
+		self.price.set(tree["values"][1])
+		load_services()
+
+	def delete_services(self):
+		os.remove("services/" + self.service.get() + ".txt")
+		load_services()
+		self.tree_insert(True)
+		self.service.set("S" + str(len(os.listdir("services/")) + 1))
+		self.description.set("")
+		self.price.set(0)
+
+	def tree_insert(self, arg=False):
+
+		if arg:
+			for item in self.services_view.get_children():
+				self.services_view.delete(item)
+		for service in os.listdir("services/"):
+			file = open("services/" + service, "r")
+			file = file.read().splitlines()
+			# check if the bill satisfy the date condition
+			self.services_view.insert('', 'end', text=service.split(".")[0], values=(
+				file[0], file[1]))
 
 
 class Client:
@@ -83,30 +160,21 @@ class Menu:
 		       command=lambda: (BillSearch(self))).place(x=535, y=279)
 		# add_services
 		Button(self.menu_canva, text="Add Services", bg="#FBC281", height=4, width=21,
-		       command=lambda: (self.add_services())).place(x=535, y=361)
+		       command=lambda: (Services(self))).place(x=535, y=361)
 		# update_services
 		Button(self.menu_canva, text="Update Services", bg="#FBC281", height=4, width=21,
-		       command=lambda: (self.upd_services())).place(x=535, y=444)
+		       command=lambda: (Services(self))).place(x=535, y=444)
 		# generate_pdf
 		Button(self.menu_canva, text="Generate pdf", bg="#FBC281", height=4, width=21,
 		       command=lambda: (BillSearch(self))).place(x=535, y=526)
 		self.window.mainloop()
-
-	def add_services(self):
-		sub_window, sub_canva = top_level()
-		make_bill_text = Label(
-			sub_canva, text="add_services", bg="White", anchor=S).pack()
-
-	def upd_services(self):
-		sub_window, sub_canva = top_level()
-		make_bill_text = Label(
-			sub_canva, text="update_services", bg="White", anchor=S).pack()
 
 
 class Bill:
 	"""
 	Class that determine the GUI and algorithms to create a bill and add a new client
 	"""
+
 	def __init__(self, main):
 		"""
 		call the GUI and load all the available clients
@@ -268,6 +336,7 @@ class Bill:
 			pdf_bill.output("invoices/" + str(self.bil_number.get()) + ".pdf", 'F')
 			file = open(r"clients/" + str(self.client_id.get()) + ".txt", "a")
 			file.write("\n" + str(self.bil_number.get()))
+			self.sub_window.destroy()
 
 		else:
 			new_client = self.client_id.get()
@@ -283,7 +352,6 @@ class Bill:
 		self.total.set(self.total.get() + self.sub_total.get())
 		self.taxes.set(self.total.get() * 0.13)
 		self.total_with_taxes.set(self.total.get() + self.taxes.get())
-		"""need to get the price of the services"""
 		return
 
 	def found_client(self):
@@ -572,7 +640,7 @@ def load_services():
 	for services in os.listdir("services/"):
 		file = open(r"services/" + services, "r")
 		file = file.read().splitlines()
-		list.append(file[0])
+		list.append(services.split(".")[0])
 		list2.append(int(file[1]))
 	service_list = list
 	service_price = list2
@@ -581,9 +649,9 @@ def load_services():
 def number_bill():
 	"""
 	generate a number for the bill
-	:return: number bill autoo generated
+	:return: number bill auto generated
 	"""
-	number: int = 0
+	number = 0
 	bills = os.listdir("bills/")
 	for number in bills:
 		indice = number.find(".txt")
@@ -647,7 +715,6 @@ def login():
 	# This compare the face encoding with all users encoding's
 	results = False
 	if True in face_recognition.compare_faces(faces, user_face_encoding, 0.469):
-
 		results = True
 	# ---------------------------------------------------------------------------------
 	# Print the results
