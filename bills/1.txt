@@ -1,10 +1,10 @@
 Client
 EM1:Isaac Barrios Campos
 Dates
-2020-08-10:2020-08-12
-Services            Quantity        Total
-Alemndro 15 1920
-Service 2 0
-Alemndro 11 1408
+2020-08-13:2020-08-15
+Services      Quantity        Total
+S1               1               1855
+S1               2               3710
+S1               11               20405
 total
-3760
+29346

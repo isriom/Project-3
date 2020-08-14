@@ -66,6 +66,7 @@ class Register:
 		user_file.write(self.user_addrees.get() + "\n")
 		user_file.close()
 		os.rename(r"user_database/user_0.png", r"user_database/" + self.new_name.get() + ".png")
+		self.window.destroy()
 
 
 class Top_level:
