@@ -232,7 +232,7 @@ class Menu:
 		Button(self.menu_canva, text="Add Services", bg="#FBC281", height=4, width=21,
 		       command=lambda: (Services(self))).place(x=535, y=361)
 		# update_services
-		Button(self.menu_canva, text="update_services", bg="#FBC281", height=4, width=21,
+		Button(self.menu_canva, text="Update Services", bg="#FBC281", height=4, width=21,
 		       command=lambda: (Services(self))).place(x=535, y=444)
 		# generate_pdf
 		Button(self.menu_canva, text="Generate pdf", bg="#FBC281", height=4, width=21,
