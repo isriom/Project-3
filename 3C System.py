@@ -8,12 +8,84 @@ from PIL import ImageTk, Image
 from fpdf import FPDF
 
 
-class Services:
+class Register:
+
+	def __init__(self):
+		self.window = Tk()
+		self.window.title("3C")
+		self.menu_canva = Canvas(self.window, width=700, height=600, bg="White")
+		self.menu_canva.pack()
+		self.logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
+		self.main_menu_image = PhotoImage(file="Plantillas menu\Add_user.png")
+		self.new_name = StringVar()
+		self.new_lastname = StringVar()
+		self.age = IntVar()
+		self.user_id = IntVar()
+		self.user_email = StringVar()
+		self.user_addrees = StringVar()
+		self.face_registration()
+
+	def face_registration(self):
+		user_image = Image.open(r"user_database/user_0.png")
+		user_image = user_image.resize((436, 435), Image.ANTIALIAS)
+		user_photo = ImageTk.PhotoImage(user_image)
+		self.menu_canva.create_image(350, 300, image=self.main_menu_image)
+		self.menu_canva.create_image(238, 73, image=self.logo_3C)
+		self.menu_canva.create_image(237, 382, image=user_photo)
+
+		new_name = Entry(self.menu_canva, textvariable=self.new_name, width=15)
+		new_name.place(x=600, y=170, height=32)
+
+		new_lastname = Entry(self.menu_canva, textvariable=self.new_lastname, width=15)
+		new_lastname.place(x=600, y=235, height=32)
+
+		age = Entry(self.menu_canva, textvariable=self.age, width=15)
+		age.place(x=600, y=300, height=32)
+
+		user_id = Entry(self.menu_canva, textvariable=self.user_id, width=15)
+		user_id.place(x=600, y=365, height=32)
+
+		user_email = Entry(self.menu_canva, textvariable=self.user_email, width=15)
+		user_email.place(x=600, y=430, height=32)
+
+		user_email = Entry(self.menu_canva, textvariable=self.user_addrees, width=32)
+		user_email.place(x=492, y=514, height=32)
+
+		Button(self.menu_canva, text="Add", bg="#FBC281", height=2, width=28,
+		       command=lambda: (self.add_worker_button())).place(x=488, y=557)
+
+		self.window.mainloop()
+
+	def add_worker_button(self):
+		user_file = open(os.getcwd() + r"/Workers/" + self.new_name.get() + self.new_lastname.get() + ".txt", "x")
+		user_file.write(self.new_name.get() + "\n")
+		user_file.write(self.new_lastname.get() + "\n")
+		user_file.write(str(self.age.get()) + "\n")
+		user_file.write(str(self.user_id.get()) + "\n")
+		user_file.write(self.user_email.get() + "\n")
+		user_file.write(self.user_addrees.get() + "\n")
+		user_file.close()
+		os.rename(r"user_database/user_0.png", r"user_database/" + self.new_name.get() + ".png")
+
+
+class Top_level:
+	"""
+	Class that create a new windows
+	"""
+
+	def __init__(self):
+		self.sub_window = Toplevel()
+		self.sub_window.title("3C")
+		self.sub_canva = Canvas(self.sub_window, width=700, height=600, bg="White")
+		self.sub_canva.pack()
+
+
+class Services(Top_level):
 
 	def __init__(self, main):
+		super().__init__()
 		load_services()
 		self.main = main
-		self.sub_window, self.sub_canva = top_level()
 		self.services_view = ttk.Treeview(self.sub_canva, selectmode='browse', height=10, show="tree")
 		self.description = StringVar()
 		self.service = StringVar()
@@ -34,7 +106,7 @@ class Services:
 		services_view.column("Description", width=165)
 		services_view.column("Price", width=100)
 		services_view.place(x=18, y=348)
-		scroll = create_scroll(sub_canva, services_view, "vertical", x=549, y=348)
+		create_scroll(sub_canva, services_view, "vertical", x=549, y=348)
 
 		# entry
 		services = Entry(sub_canva, textvariable=self.service, width=22)
@@ -47,14 +119,14 @@ class Services:
 		price.place(x=522, y=245, height=32)
 
 		# buttons
-		delete_services_button = Button(sub_canva, text="X", bg="seashell3", height=1, width=8,
-		                                command=lambda: (self.delete_services())).place(x=608, y=430)
+		Button(sub_canva, text="X", bg="seashell3", height=1, width=8,
+		       command=lambda: (self.delete_services())).place(x=608, y=430)
 
-		add_services_button = Button(sub_canva, text="!", bg="seashell3", height=1, width=8,
-		                             command=(lambda: self.add_service())).place(x=608, y=491)
+		Button(sub_canva, text="!", bg="seashell3", height=1, width=8,
+		       command=(lambda: self.add_service())).place(x=608, y=491)
 
-		update_services_button = Button(sub_canva, text="↻", bg="#FBC281", height=1, width=8,
-		                                command=lambda: (self.add_service())).place(x=608, y=367)
+		Button(sub_canva, text="↻", bg="#FBC281", height=1, width=8,
+		       command=lambda: (self.add_service())).place(x=608, y=367)
 
 		# events
 		services_view.bind('<ButtonRelease-1>', self.select_item)
@@ -70,7 +142,7 @@ class Services:
 		self.description.set("")
 		self.price.set(0)
 
-	def select_item(self, event):
+	def select_item(self):
 		tree = self.services_view.item(self.services_view.focus())
 		self.service.set(tree["text"])
 		self.description.set(tree["values"][0])
@@ -123,25 +195,17 @@ class Menu:
 	The main menu Class
 	"""
 
-	# window = Tk()
-	# window.title("3C")
-	# menu_canva = Canvas(window, width=700, height=600, bg="White")
-	# menu_canva.pack()
-	# logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
-
-	# screen.create_image(238, 73, image=logo_3C)
-
-	def __init__(self, user):
+	def __init__(self, user_pos):
 		"""
 		Call the creation of the menu GUI and load the user
-		:param user: name of the user
+		:param user_pos: name of the user
 		"""
 		self.window = Tk()
 		self.window.title("3C")
 		self.menu_canva = Canvas(self.window, width=700, height=600, bg="White")
 		self.menu_canva.pack()
 		self.logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
-		self.user = user
+		self.user = user_pos
 		self.menu()
 
 	def menu(self):
@@ -176,7 +240,7 @@ class Menu:
 		self.window.mainloop()
 
 
-class Bill:
+class Bill(Top_level):
 	"""
 	Class that determine the GUI and algorithms to create a bill and add a new client
 	"""
@@ -186,10 +250,10 @@ class Bill:
 		call the GUI and load all the available clients
 		:param main: root tkinter object
 		"""
+		super().__init__()
 		load_clients()
 		load_services()
 		self.main = main
-		self.sub_window, self.sub_canva = top_level()
 		self.services_view = ttk.Treeview(self.sub_canva, selectmode='browse', height=6, show="tree")
 		self.client_id = StringVar()
 		self.client_id.set("EM" + str(len(os.listdir("clients/")) + 1))
@@ -227,7 +291,7 @@ class Bill:
 		services_view.column("sub total", width=105)
 		services_view["displaycolumns"] = ("quantity", "sub total")
 		services_view.place(x=18, y=427)
-		scroll = create_scroll(sub_canva, services_view, "vertical", x=549, y=428)
+		create_scroll(sub_canva, services_view, "vertical", x=549, y=428)
 
 		# combobox´s
 		customer_data = ttk.Combobox(sub_canva, state="normal", width=30, textvariable=self.client_id)
@@ -276,18 +340,18 @@ class Bill:
 		customer_email.place(x=208, y=238, height=22)
 
 		# buttons
-		delete_services_button = Button(sub_canva, text="X", bg="seashell3", height=1, width=5,
-		                                command=lambda: (self.clear_bill_services())).place(x=618, y=298)
+		Button(sub_canva, text="X", bg="seashell3", height=1, width=5,
+		       command=lambda: (self.clear_bill_services())).place(x=618, y=298)
 
-		add_services_button = Button(sub_canva, text="!", bg="seashell3", height=1, width=5,
-		                             command=(lambda: self.call_add_button())).place(
+		Button(sub_canva, text="!", bg="seashell3", height=1, width=5,
+		       command=(lambda: self.call_add_button())).place(
 			x=618, y=338)
 
-		add_bill = Button(sub_canva, text="Accept", bg="#FBC281", height=1, width=15,
-		                  command=lambda: (self.add_client(services_view))).place(x=33, y=563)
+		Button(sub_canva, text="Accept", bg="#FBC281", height=1, width=15,
+		       command=lambda: (self.add_client(services_view))).place(x=33, y=563)
 
-		delete_bill = Button(sub_canva, text="Delete", bg="#FBC281", height=1, width=15,
-		                     command=lambda: self.sub_window.destroy()).place(x=188, y=563)
+		Button(sub_canva, text="Delete", bg="#FBC281", height=1, width=15,
+		       command=lambda: self.sub_window.destroy()).place(x=188, y=563)
 
 		# events
 		customer_data.bind("<<ComboboxSelected>>", lambda event: self.found_client())
@@ -313,12 +377,11 @@ class Bill:
 			# Create a txt
 			bill = "Client" + "\n" + self.client_id.get() + ":" + self.client_name.get() + "\n" + "Dates" + "\n" + str(
 				self.date) + ":" + str(
-				self.due_date) + "\n" + "Services            Quantity        Total" + "\n"
-			services = 0
+				self.due_date) + "\n" + "Services      Quantity        Total" + "\n"
 			for line in tree.get_children():
 				bill = bill + str(tree.item(line)["text"])
 				for value in tree.item(line)['values']:
-					bill = bill + " " + str(value)
+					bill = bill + "               " + str(value)
 				bill = bill + "\n"
 			file = open(r"bills/" + str(self.bil_number.get()) + ".txt", "x")
 			file.write(bill + "total" + "\n" + str(self.total_with_taxes.get()))
@@ -375,7 +438,7 @@ class Bill:
 		self.price.set(service_price[service_list.index(self.services.get())])
 		self.sub_total.set(self.price.get() * self.quantity.get())
 
-	def select_item(self, event):
+	def select_item(self):
 		service = self.services_view.item(self.services_view.focus())
 		self.services.set(service["text"])
 		self.quantity.set(service["values"][0])
@@ -385,7 +448,7 @@ class Bill:
 		self.tree_insert(self.services_view)
 
 
-class BillSearch:
+class BillSearch(Top_level):
 	"""
 	Class that determine the GUI and algoritm to search bills and generate reports
 	"""
@@ -395,8 +458,8 @@ class BillSearch:
 		call the GUI and load all the available bills
 		:param main: root tkinter object
 		"""
+		super().__init__()
 		self.main = main
-		self.sub_window, self.sub_canva = top_level()
 		self.services_view = ttk.Treeview(self.sub_canva, selectmode='browse', height=10, show="tree")
 
 		self.min_day = IntVar()
@@ -433,7 +496,7 @@ class BillSearch:
 		self.services_view.column("Dates", width=170)
 		self.services_view.column("total bill", width=110)
 		self.services_view.place(x=18, y=346)
-		scroll = create_scroll(sub_canva, self.services_view, "vertical", x=548, y=348)
+		create_scroll(sub_canva, self.services_view, "vertical", x=548, y=348)
 		self.tree_insert()
 
 		# combobox´s
@@ -468,14 +531,14 @@ class BillSearch:
 
 		# buttons
 
-		report_button = Button(sub_canva, text="Report", bg="seashell3", height=1, width=8,
-		                       command=(lambda: self.make_report())).place(x=592, y=331)
+		Button(sub_canva, text="Report", bg="seashell3", height=1, width=8,
+		       command=(lambda: self.make_report())).place(x=592, y=331)
 
-		pdf_bill = Button(sub_canva, text="!", bg="seashell3", height=1, width=8,
-		                  command=lambda: self.item_pdf()).place(x=592, y=402)
+		Button(sub_canva, text="!", bg="seashell3", height=1, width=8,
+		       command=lambda: self.item_pdf()).place(x=592, y=402)
 
-		delete_bill = Button(sub_canva, text="X", bg="seashell3", height=1, width=8,
-		                     command=lambda: self.delete_bill()).place(x=592, y=472)
+		Button(sub_canva, text="X", bg="seashell3", height=1, width=8,
+		       command=lambda: self.delete_bill()).place(x=592, y=472)
 
 		# events
 		min_year.bind("<<ComboboxSelected>>", lambda event: self.days_sort())
@@ -537,16 +600,16 @@ class BillSearch:
 		pdf_bill.set_font("times", "B", 30)
 		pdf_bill.image("Plantillas menu/3clogo.png", 10, 8, 70)
 		pdf_bill.cell(80)
-		pdf_bill.cell(70, 10, ("Report"), 1, 1, 'C')
+		pdf_bill.cell(70, 10, "Report", 1, 1, 'C')
 		pdf_bill.ln(10)
 
 		# put the data
 		pdf_bill.set_font("helvetica", size=12)
-		pdf_bill.cell(20, 10, ("Bill"), 1, 0)
+		pdf_bill.cell(20, 10, "Bill", 1, 0)
 		pdf_bill.cell(2)
-		pdf_bill.cell(70, 10, ("Client"), 1, 0)
+		pdf_bill.cell(70, 10, "Client", 1, 0)
 		pdf_bill.cell(2)
-		pdf_bill.cell(70, 10, ("Sub total"), 1, 1)
+		pdf_bill.cell(70, 10, "Sub total", 1, 1)
 
 		for bills in os.listdir("bills/"):
 			# load bill data
@@ -569,74 +632,14 @@ class BillSearch:
 
 		pdf_bill.ln(3)
 		pdf_bill.cell(95)
-		pdf_bill.cell(15, 10, ("taxes"), 1, 0, "C")
+		pdf_bill.cell(15, 10, "taxes", 1, 0, "C")
 		pdf_bill.cell(40, 10, (str(self.total.get() * 0.13)), 1, 1)
 		pdf_bill.cell(95)
-		pdf_bill.cell(15, 10, ("Total"), 1, 0, "C")
+		pdf_bill.cell(15, 10, "Total", 1, 0, "C")
 		pdf_bill.cell(40, 10, (str(self.total.get())), 1, 0)
 
 		pdf_bill.output("reports/report.pdf", 'F')
 		os.startfile(os.getcwd() + "/reports/report.pdf")
-
-
-class Register:
-
-	def __init__(self):
-		self.window = Tk()
-		self.window.title("3C")
-		self.menu_canva = Canvas(self.window, width=700, height=600, bg="White")
-		self.menu_canva.pack()
-		self.logo_3C = PhotoImage(file="Plantillas menu/3clogo.png")
-		self.main_menu_image = PhotoImage(file="Plantillas menu\Add_user.png")
-		self.new_name = StringVar()
-		self.new_lastname = StringVar()
-		self.age = IntVar()
-		self.user_id = IntVar()
-		self.user_email = StringVar()
-		self.user_addrees = StringVar()
-		self.face_registration()
-
-	def face_registration(self):
-		user_image = Image.open(r"user_database/user_0.png")
-		user_image = user_image.resize((436, 435), Image.ANTIALIAS)
-		user_photo = ImageTk.PhotoImage(user_image)
-		self.menu_canva.create_image(350, 300, image=self.main_menu_image)
-		self.menu_canva.create_image(238, 73, image=self.logo_3C)
-		self.menu_canva.create_image(237, 382, image=user_photo)
-
-		new_name = Entry(self.menu_canva, textvariable=self.new_name, width=15)
-		new_name.place(x=600, y=170, height=32)
-
-		new_lastname = Entry(self.menu_canva, textvariable=self.new_lastname, width=15)
-		new_lastname.place(x=600, y=235, height=32)
-
-		age = Entry(self.menu_canva, textvariable=self.age, width=15)
-		age.place(x=600, y=300, height=32)
-
-		user_id = Entry(self.menu_canva, textvariable=self.user_id, width=15)
-		user_id.place(x=600, y=365, height=32)
-
-		user_email = Entry(self.menu_canva, textvariable=self.user_email, width=15)
-		user_email.place(x=600, y=430, height=32)
-
-		user_email = Entry(self.menu_canva, textvariable=self.user_addrees, width=32)
-		user_email.place(x=492, y=514, height=32)
-
-		Button(self.menu_canva, text="Add", bg="#FBC281", height=2, width=28,
-		       command=lambda: (self.add_worker_button())).place(x=488, y=557)
-
-		self.window.mainloop()
-
-	def add_worker_button(self):
-		user_file = open(os.getcwd() + r"/Workers/" + self.new_name.get() + self.new_lastname.get() + ".txt", "x")
-		user_file.write(self.new_name.get() + "\n")
-		user_file.write(self.new_lastname.get() + "\n")
-		user_file.write(str(self.age.get()) + "\n")
-		user_file.write(str(self.user_id.get()) + "\n")
-		user_file.write(self.user_email.get() + "\n")
-		user_file.write(self.user_addrees.get() + "\n")
-		user_file.close()
-		os.rename(r"user_database/user_0.png", r"user_database/" + self.new_name.get() + ".png")
 
 
 def create_scroll(canvas, object, orientation, x=0, y=0):
@@ -770,7 +773,7 @@ def login_image():
 def login():
 	"""
 	Check all the images in the database and compare with the img form login image
-	:return: a tuple that indicate if user is in the database and user
+	:return: a tuple that indicate if user_pos is in the database and user_pos
 	"""
 	# ---------------------------------------------------------------------------------
 	# This sentences will load and encode the image and face of the person trying to login
@@ -790,18 +793,6 @@ def login():
 	else:
 		print("You are not in our database! Please create your profile or get in contact with support")
 		return False, -1
-
-
-def top_level():
-	"""
-	:return: a tuple with a topelevel with title, size and a canvas
-	"""
-	global main_window
-	window = Toplevel()
-	window.title("3C")
-	sub_menu_canva = Canvas(window, width=700, height=600, bg="White")
-	sub_menu_canva.pack()
-	return window, sub_menu_canva
 
 
 faces = []
